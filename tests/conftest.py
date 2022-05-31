@@ -1,1 +1,1 @@
-import pvxarray  # noqa
+import pvxarray  # noqa: F401
