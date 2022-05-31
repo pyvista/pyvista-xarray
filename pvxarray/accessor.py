@@ -1,5 +1,6 @@
 from functools import wraps
 
+import numpy as np
 import pyvista as pv
 import xarray as xr
 
@@ -169,5 +170,33 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
         z = self.z
         if z is not None:
             grid.z = self.z
+        grid[self._obj.name or "data"] = self.data
+        return grid
+
+
+@xr.register_dataarray_accessor("pyvista_structured")
+class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
+    def __init__(self, xarray_obj):
+        super().__init__(xarray_obj)
+        self._x = None
+        self._y = None
+        self._z = None
+
+    @property
+    def points(self):
+        """Generate structured points as new array."""
+        points = np.zeros((self.x.size, 3), self.x.dtype)
+        points[:, 0] = self.x.ravel("F")
+        points[:, 1] = self.y.ravel("F")
+        if self.z is not None:
+            points[:, 2] = self.z.ravel("F")
+        return points
+
+    @property
+    def mesh(self):
+        grid = pv.StructuredGrid()
+        grid.points = self.points
+        shape = self.x.shape
+        grid.dimensions = list(shape) + [1] * (3 - len(shape))
         grid[self._obj.name or "data"] = self.data
         return grid
