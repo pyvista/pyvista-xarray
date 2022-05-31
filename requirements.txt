@@ -4,3 +4,4 @@ pooch
 dask
 netcdf4
 pytest
+pytest-cov
