@@ -1,0 +1,47 @@
+name: Tests
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9, "3.10"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Install pvxarray
+        run: pip install -e .
+      - name: Scooby Report
+        run: python -c "import pvxarray;print(pvxarray.Report())"
+      - name: Run Tests
+        run: |
+          pytest -v --cov=pvxarray
+          coverage xml -o coverage.xml
+      # - name: Run Doc Tests
+      #   run: |
+      #     make doctest
+      - name: Stash coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage.xml
+          path: coverage.xml
+      # - uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: coverage.xml
+      #     verbose: true

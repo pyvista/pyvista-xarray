@@ -1,0 +1,12 @@
+*.pyc
+*.egg-info
+dist/
+build/
+**/.DS_Store
+.coverage
+.coverage*
+notebooks
+.pytest_cache
+.ipynb_checkpoints
+bin/
+Untitled*.ipynb

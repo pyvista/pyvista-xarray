@@ -1,0 +1,6 @@
+xarray
+pyvista
+pooch
+dask
+netcdf4
+pytest
