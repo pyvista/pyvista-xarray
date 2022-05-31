@@ -42,6 +42,8 @@ class BasePyVistaAccessor:
         self._y_coord = None
         self._z_coord = None
 
+        self._mesh = None
+
     def _check_safe_dims(self):
         # for dim in self._obj.dims:
         #     if dim not in [self.x_coord, self.y_coord, self.z_coord]:
@@ -164,14 +166,15 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
 
     @property
     def mesh(self):
-        grid = pv.RectilinearGrid()
-        grid.x = self.x
-        grid.y = self.y
+        if self._mesh is None:
+            self._mesh = pv.RectilinearGrid()
+        self._mesh.x = self.x
+        self._mesh.y = self.y
         z = self.z
         if z is not None:
-            grid.z = self.z
-        grid[self._obj.name or "data"] = self.data
-        return grid
+            self._mesh.z = self.z
+        self._mesh[self._obj.name or "data"] = self.data
+        return self._mesh
 
 
 @xr.register_dataarray_accessor("pyvista_structured")

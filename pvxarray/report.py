@@ -8,13 +8,15 @@ class Report(scooby.Report):
             "pyvista",
             "xarray",
             "scooby",
+            "vtk",
+            "numpy",
         ]
 
         scooby.Report.__init__(
             self,
             additional=additional,
             core=core,
-            # optional=optional,
+            optional=[],
             ncol=ncol,
             text_width=text_width,
             sort=sort,
