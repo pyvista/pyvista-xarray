@@ -33,8 +33,8 @@ class _LocIndexer:
     def __getitem__(self, key) -> xr.DataArray:
         result = self.parent._obj.loc[key]
         if isinstance(self.parent, PyVistaRectilinearGridAccessor):
-            result.pyvista_rectilinear.copy_meta(self.parent)
-            result.pyvista_rectilinear.update()
+            result.pyvista.copy_meta(self.parent)
+            result.pyvista.update()
         elif isinstance(self.parent, PyVistaStructuredGridAccessor):
             result.pyvista_structured.copy_meta(self.parent)
             result.pyvista_structured.update()
@@ -174,7 +174,7 @@ class BasePyVistaAccessor:
         return self.mesh.plot(*args, **kwargs)
 
 
-@xr.register_dataarray_accessor("pyvista_rectilinear")
+@xr.register_dataarray_accessor("pyvista")
 class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
     def __init__(self, xarray_obj):
         super().__init__(xarray_obj)
@@ -186,8 +186,8 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
 
     def __getitem__(self, key):
         result = super().__getitem__(key)
-        result.pyvista_rectilinear.copy_meta(self)
-        result.pyvista_rectilinear.update()
+        result.pyvista.copy_meta(self)
+        result.pyvista.update()
         return result
 
     @property

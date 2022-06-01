@@ -31,7 +31,7 @@ def bahamas_rgb():
 
 
 def test_simple(simple):
-    mesh = simple["ds"].temperature.pyvista_rectilinear.mesh
+    mesh = simple["ds"].temperature.pyvista.mesh
 
     assert mesh.n_points == 8
     assert np.allclose(mesh.x, simple["lon"])
@@ -41,7 +41,7 @@ def test_simple(simple):
 
 
 def test_shared_coords(simple):
-    mesh = simple["ds"].temperature.pyvista_rectilinear.mesh
+    mesh = simple["ds"].temperature.pyvista.mesh
 
     mesh.x[0] = 0
     assert simple["lon"][0] == 0
@@ -57,7 +57,7 @@ def test_shared_coords(simple):
 
 
 def test_shared_data(simple):
-    mesh = simple["ds"].temperature.pyvista_rectilinear.mesh
+    mesh = simple["ds"].temperature.pyvista.mesh
 
     mesh["temperature"][0] = -1
     assert simple["temp"].ravel()[0] == -1
@@ -68,7 +68,7 @@ def test_air_temperature():
     ds = xr.tutorial.load_dataset("air_temperature")
     da = ds.air[dict(time=0)]
 
-    mesh = da.pyvista_rectilinear.mesh
+    mesh = da.pyvista.mesh
     assert mesh
     assert mesh.n_points == 1325
     assert "air" in mesh.point_data
@@ -81,7 +81,7 @@ def test_air_temperature():
 def test_rioxarray(bahamas_rgb):
     da = rioxarray.open_rasterio(bahamas_rgb)
     band = da[dict(band=1)]
-    mesh = band.pyvista_rectilinear.mesh
+    mesh = band.pyvista.mesh
     assert np.allclose(mesh["data"], band.values.ravel())
     assert np.allclose(mesh.x, band.x.values)
     assert np.allclose(mesh.y, band.y.values)

@@ -18,10 +18,10 @@ ds = xr.tutorial.load_dataset("air_temperature")
 da = ds.air[dict(time=0)]  # Select DataArray for a timestep
 
 # Plot in 3D
-da.pyvista_rectilinear.plot(show_edges=True, cpos='xy')
+da.pyvista.plot(show_edges=True, cpos='xy')
 
 # Or grab the mesh object for use with PyVista
-mesh = da.pyvista_rectilinear.mesh
+mesh = da.pyvista.mesh
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/air_temperature.png' -->
@@ -72,7 +72,7 @@ ds = xr.Dataset(
     },
 )
 
-mesh = ds.temperature.pyvista_rectilinear.mesh
+mesh = ds.temperature.pyvista.mesh
 mesh.plot()
 ```
 
@@ -91,7 +91,7 @@ da = da.rio.reproject("EPSG:3857")
 band = da[dict(band=0)]
 
 # Grab the mesh object for use with PyVista
-mesh = band.pyvista_rectilinear.mesh
+mesh = band.pyvista.mesh
 
 mesh.plot(cpos='xy')
 ```
