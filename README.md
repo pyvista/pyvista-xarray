@@ -85,6 +85,7 @@ import rioxarray
 import xarray as xr
 
 da = rioxarray.open_rasterio("TC_NG_SFBay_US_Geo_COG.tif")
+da = da.rio.reproject("EPSG:3857")
 
 # Grab a single band
 band = da[dict(band=0)]
@@ -95,4 +96,5 @@ mesh = band.pyvista_rectilinear.mesh
 mesh.plot(cpos='xy')
 ```
 
+<!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
