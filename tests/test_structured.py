@@ -11,9 +11,6 @@ def simple():
     x, y, z = np.meshgrid(x, y, z)
     temp = 15 + 8 * np.random.randn(*x.shape)
 
-    x.shape
-    temp.shape
-
     ds = xr.Dataset(
         {
             "temperature": (["zi", "xi", "yi"], temp),
