@@ -10,3 +10,5 @@ notebooks
 .ipynb_checkpoints
 bin/
 Untitled*.ipynb
+htmlcov/
+coverage.xml

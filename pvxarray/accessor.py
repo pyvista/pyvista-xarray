@@ -122,12 +122,8 @@ class BasePyVistaAccessor:
     @property
     def z_coord(self):
         if self._z_coord is None:
-            try:
-                z_coord = _get_z_coord(self._obj)
-                self._z_coord = z_coord
-                return z_coord
-            except KeyError:
-                pass
+            z_coord = _get_z_coord(self._obj)
+            self._z_coord = z_coord
         return self._z_coord
 
     @z_coord.setter
@@ -164,7 +160,7 @@ class BasePyVistaAccessor:
 
     @property
     def mesh(self):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def update(self):
         self.mesh  # fetch mesh so values are updated
