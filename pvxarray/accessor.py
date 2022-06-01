@@ -3,32 +3,24 @@ from functools import wraps
 import pyvista as pv
 import xarray as xr
 
+from pvxarray import knowledge
+
 
 def _get_spatial_coords(data_array):
     coords = data_array.coords  # TODO: handle case
-    if "latitude" in coords and "longitude" in coords:
-        x_coord = "longitude"
-        y_coord = "latitude"
-    elif "lat" in coords and "lon" in coords:
-        x_coord = "lon"
-        y_coord = "lat"
-    elif "easting" in coords and "northing" in coords:
-        x_coord = "easting"
-        y_coord = "northing"
-    elif "east" in coords and "north" in coords:
-        x_coord = "east"
-        y_coord = "north"
-    elif "x" in coords and "y" in coords:
-        x_coord = "x"
-        y_coord = "y"
-    else:
+    x_coord, y_coord = None, None
+    for xc, yc in knowledge.XY_NAMES:
+        if xc in coords and yc in coords:
+            x_coord = xc
+            y_coord = yc
+    if x_coord is None or y_coord is None:
         raise KeyError(f"Spatial coordinates not understood: {data_array.coords}")
     return x_coord, y_coord
 
 
 def _get_z_coord(data_array):
     for var in data_array.coords:
-        if var.lower() in ["altitude", "depth", "z"]:
+        if var.lower() in knowledge.Z_NAMES:
             return var
     return None
 
