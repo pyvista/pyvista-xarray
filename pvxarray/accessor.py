@@ -45,6 +45,7 @@ class BasePyVistaAccessor:
         self._mesh = None
 
     def _check_safe_dims(self):
+        # TODO: check ordering as ZXY, not just shape
         # for dim in self._obj.dims:
         #     if dim not in [self.x_coord, self.y_coord, self.z_coord]:
         #         raise ValueError(f'Please select an index along the `{dim}` dimension.')
@@ -53,8 +54,7 @@ class BasePyVistaAccessor:
     @property
     def data(self):
         self._check_safe_dims()
-        # TODO: check ordering as ZXY (F-ordering)
-        return self._obj.values.ravel()
+        return self._obj.values
 
     @property
     def x_coord(self):
@@ -173,7 +173,7 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
         z = self.z
         if z is not None:
             self._mesh.z = self.z
-        self._mesh[self._obj.name or "data"] = self.data
+        self._mesh[self._obj.name or "data"] = self.data.ravel()
         return self._mesh
 
 
@@ -186,20 +186,44 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
         self._z = None
 
     @property
+    def x(self):
+        x = super().x
+        if x.ndim < 3 and self.z is not None:
+            x = np.repeat([x], self.z.shape[0], axis=0)
+        return x
+
+    @property
+    def y(self):
+        y = super().y
+        if y.ndim < 3 and self.z is not None:
+            y = np.repeat([y], self.z.shape[0], axis=0)
+        return y
+
+    @property
     def points(self):
         """Generate structured points as new array."""
         points = np.zeros((self.x.size, 3), self.x.dtype)
-        points[:, 0] = self.x.ravel("F")
-        points[:, 1] = self.y.ravel("F")
+        points[:, 0] = self.x.ravel(order="F")
+        points[:, 1] = self.y.ravel(order="F")
         if self.z is not None:
-            points[:, 2] = self.z.ravel("F")
+            points[:, 2] = self.z.ravel(order="F")
         return points
 
     @property
+    def data(self):
+        v = super().data
+        if v.shape != self.x.shape:
+            raise ValueError(
+                "Coord and data shape mismatch. You may need to `transpose` the DataArray."
+            )
+        return v
+
+    @property
     def mesh(self):
-        grid = pv.StructuredGrid()
-        grid.points = self.points
+        if self._mesh is None:
+            self._mesh = pv.StructuredGrid()
+        self._mesh.points = self.points
         shape = self.x.shape
-        grid.dimensions = list(shape) + [1] * (3 - len(shape))
-        grid[self._obj.name or "data"] = self.data
-        return grid
+        self._mesh.dimensions = list(shape) + [1] * (3 - len(shape))
+        self._mesh[self._obj.name or "data"] = self.data.ravel(order="F")
+        return self._mesh

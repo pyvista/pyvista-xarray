@@ -26,9 +26,9 @@ def test_simple(simple):
     mesh = simple["ds"].temperature.pyvista_rectilinear.mesh
 
     assert mesh.n_points == 8
-    assert np.allclose(mesh.x, simple["lon"].ravel())
-    assert np.allclose(mesh.y, simple["lat"].ravel())
-    assert np.allclose(mesh.z, simple["z"].ravel())
+    assert np.allclose(mesh.x, simple["lon"])
+    assert np.allclose(mesh.y, simple["lat"])
+    assert np.allclose(mesh.z, simple["z"])
     assert np.allclose(mesh["temperature"], simple["temp"].ravel())
 
 
@@ -37,15 +37,15 @@ def test_shared_coords(simple):
 
     mesh.x[0] = 0
     assert simple["lon"][0] == 0
-    assert np.allclose(mesh.x, simple["lon"].ravel())
+    assert np.allclose(mesh.x, simple["lon"])
 
     mesh.y[0] = 0.5
     assert simple["lat"][0] == 0.5
-    assert np.allclose(mesh.y, simple["lat"].ravel())
+    assert np.allclose(mesh.y, simple["lat"])
 
     mesh.z[0] = 1
     assert simple["z"][0] == 1
-    assert np.allclose(mesh.z, simple["z"].ravel())
+    assert np.allclose(mesh.z, simple["z"])
 
 
 def test_shared_data(simple):
