@@ -26,8 +26,26 @@ def _get_z_coord(data_array):
     return None
 
 
+class _LocIndexer:
+    def __init__(self, parent: "BasePyVistaAccessor"):
+        self.parent = parent
+
+    def __getitem__(self, key) -> xr.DataArray:
+        result = self.parent._obj.loc[key]
+        if isinstance(self.parent, PyVistaRectilinearGridAccessor):
+            result.pyvista_rectilinear.copy_meta(self.parent)
+            result.pyvista_rectilinear.update()
+        elif isinstance(self.parent, PyVistaStructuredGridAccessor):
+            result.pyvista_structured.copy_meta(self.parent)
+            result.pyvista_structured.update()
+        return result
+
+    def __setitem__(self, key, value) -> None:
+        self.parent._obj.__setitem__(self, key, value)
+
+
 class BasePyVistaAccessor:
-    def __init__(self, xarray_obj):
+    def __init__(self, xarray_obj: xr.DataArray):
         self._obj = xarray_obj
 
         self._x_coord = None
@@ -35,6 +53,25 @@ class BasePyVistaAccessor:
         self._z_coord = None
 
         self._mesh = None
+
+    @staticmethod
+    def _copy_meta(output, source):
+        output._x_coord = source._x_coord
+        output._y_coord = source._y_coord
+        output._z_coord = source._z_coord
+
+        output._mesh = source._mesh
+
+    def copy_meta(self, source):
+        BasePyVistaAccessor._copy_meta(self, source)
+
+    def __getitem__(self, key):
+        return self._obj.__getitem__(key)
+
+    @property
+    def loc(self) -> _LocIndexer:
+        """Attribute for location based indexing like pandas."""
+        return _LocIndexer(self)
 
     def _check_safe_dims(self):
         # TODO: check ordering as ZXY, not just shape
@@ -129,6 +166,9 @@ class BasePyVistaAccessor:
     def mesh(self):
         raise NotImplementedError
 
+    def update(self):
+        self.mesh  # fetch mesh so values are updated
+
     @wraps(pv.plot)
     def plot(self, *args, **kwargs):
         return self.mesh.plot(*args, **kwargs)
@@ -141,6 +181,14 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
         self._x = None
         self._y = None
         self._z = None
+
+        self._mesh = pv.RectilinearGrid()
+
+    def __getitem__(self, key):
+        result = super().__getitem__(key)
+        result.pyvista_rectilinear.copy_meta(self)
+        result.pyvista_rectilinear.update()
+        return result
 
     @property
     def x(self):
@@ -158,8 +206,6 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
 
     @property
     def mesh(self):
-        if self._mesh is None:
-            self._mesh = pv.RectilinearGrid()
         self._mesh.x = self.x
         self._mesh.y = self.y
         z = self.z
@@ -176,6 +222,14 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
         self._x = None
         self._y = None
         self._z = None
+
+        self._mesh = pv.StructuredGrid()
+
+    def __getitem__(self, key):
+        result = super().__getitem__(key)
+        result.pyvista_structured.copy_meta(self)
+        result.pyvista_structured.update()
+        return result
 
     @property
     def x(self):
@@ -212,8 +266,6 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
 
     @property
     def mesh(self):
-        if self._mesh is None:
-            self._mesh = pv.StructuredGrid()
         self._mesh.points = self.points
         shape = self.x.shape
         self._mesh.dimensions = list(shape) + [1] * (3 - len(shape))
