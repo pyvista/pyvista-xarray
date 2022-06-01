@@ -102,6 +102,23 @@ mesh.plot(cpos='xy')
 <!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
 
+```py
+import pvxarray
+import rioxarray
+
+da = rioxarray.open_rasterio("Elevation.tif")
+da = da.rio.reproject("EPSG:3857")
+
+# Grab the mesh object for use with PyVista
+mesh = da.pyvista.mesh
+
+# Warp top and plot in 3D
+mesh.warp_by_scalar().plot()
+```
+
+<!-- notebook=0, off_screen=1, screenshot='imgs/topo.png' -->
+![topo](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/topo.png)
+
 
 ## StructuredGrid
 
