@@ -49,6 +49,8 @@ print(pvxarray.Report())
 
 ## 🏏 Further Examples
 
+### Simple RectilinearGrid
+
 ```py
 import numpy as np
 import pvxarray
@@ -73,3 +75,24 @@ ds = xr.Dataset(
 mesh = ds.temperature.pyvista_rectilinear.mesh
 mesh.plot()
 ```
+
+
+## Raster with rioxarray
+
+```py
+import pvxarray
+import rioxarray
+import xarray as xr
+
+da = rioxarray.open_rasterio("TC_NG_SFBay_US_Geo_COG.tif")
+
+# Grab a single band
+band = da[dict(band=0)]
+
+# Grab the mesh object for use with PyVista
+mesh = band.pyvista_rectilinear.mesh
+
+mesh.plot(cpos='xy')
+```
+
+![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
