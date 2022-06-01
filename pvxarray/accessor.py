@@ -191,20 +191,6 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
         return result
 
     @property
-    def x(self):
-        return super().x.ravel()
-
-    @property
-    def y(self):
-        return super().y.ravel()
-
-    @property
-    def z(self):
-        z = super().z
-        if z is not None:
-            return z.ravel()
-
-    @property
     def mesh(self):
         self._mesh.x = self.x
         self._mesh.y = self.y
