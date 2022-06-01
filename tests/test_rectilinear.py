@@ -1,5 +1,8 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
+import rioxarray
 import xarray as xr
 
 
@@ -20,6 +23,11 @@ def simple():
         },
     )
     return {"lon": lon, "lat": lat, "z": z, "temp": temp, "ds": ds}
+
+
+@pytest.fixture
+def bahamas_rgb():
+    return Path(Path(__file__).parent, "data", "bahamas_rgb.tif").absolute()
 
 
 def test_simple(simple):
@@ -68,3 +76,12 @@ def test_air_temperature():
     assert np.allclose(mesh["air"], da.values.ravel())
     assert np.allclose(mesh.x, da.lon)
     assert np.allclose(mesh.y, da.lat)
+
+
+def test_rioxarray(bahamas_rgb):
+    da = rioxarray.open_rasterio(bahamas_rgb)
+    band = da[dict(band=1)]
+    mesh = band.pyvista_rectilinear.mesh
+    assert np.allclose(mesh["data"], band.values.ravel())
+    assert np.allclose(mesh.x, band.x.values)
+    assert np.allclose(mesh.y, band.y.values)
