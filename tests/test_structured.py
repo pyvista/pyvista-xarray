@@ -45,10 +45,10 @@ def test_simple(simple):
     mesh = simple["ds"].temperature.pyvista_structured.mesh
 
     assert mesh.n_points == simple["x"].size
-    assert np.allclose(mesh.x, simple["x"])
-    assert np.allclose(mesh.y, simple["y"])
-    assert np.allclose(mesh.z, simple["z"])
-    assert np.allclose(mesh["temperature"], simple["temp"].ravel(order="F"))
+    assert np.array_equal(mesh.x, simple["x"])
+    assert np.array_equal(mesh.y, simple["y"])
+    assert np.array_equal(mesh.z, simple["z"])
+    assert np.array_equal(mesh["temperature"], simple["temp"].ravel(order="F"))
 
 
 @pytest.mark.xfail
@@ -57,7 +57,7 @@ def test_shared_data(simple):
 
     mesh["temperature"][0] = -1
     assert simple["temp"].ravel()[0] == -1
-    assert np.allclose(mesh["temperature"], simple["temp"].ravel(order="F"))
+    assert np.array_equal(mesh["temperature"], simple["temp"].ravel(order="F"))
 
 
 def test_roms(roms):

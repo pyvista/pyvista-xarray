@@ -34,10 +34,10 @@ def test_simple(simple):
     mesh = simple["ds"].temperature.pyvista.mesh
 
     assert mesh.n_points == 8
-    assert np.allclose(mesh.x, simple["lon"])
-    assert np.allclose(mesh.y, simple["lat"])
-    assert np.allclose(mesh.z, simple["z"])
-    assert np.allclose(mesh["temperature"], simple["temp"].ravel())
+    assert np.array_equal(mesh.x, simple["lon"])
+    assert np.array_equal(mesh.y, simple["lat"])
+    assert np.array_equal(mesh.z, simple["z"])
+    assert np.array_equal(mesh["temperature"], simple["temp"].ravel())
 
 
 def test_shared_coords(simple):
@@ -45,17 +45,17 @@ def test_shared_coords(simple):
 
     mesh.x[0] = 0
     assert simple["lon"][0] == 0
-    assert np.allclose(mesh.x, simple["lon"])
+    assert np.array_equal(mesh.x, simple["lon"])
     assert np.may_share_memory(mesh.x, simple["lon"])
 
     mesh.y[0] = 0.5
     assert simple["lat"][0] == 0.5
-    assert np.allclose(mesh.y, simple["lat"])
+    assert np.array_equal(mesh.y, simple["lat"])
     assert np.may_share_memory(mesh.y, simple["lat"])
 
     mesh.z[0] = 1
     assert simple["z"][0] == 1
-    assert np.allclose(mesh.z, simple["z"])
+    assert np.array_equal(mesh.z, simple["z"])
     assert np.may_share_memory(mesh.z, simple["z"])
 
 
@@ -64,7 +64,7 @@ def test_shared_data(simple):
 
     mesh["temperature"][0] = -1
     assert simple["temp"].ravel()[0] == -1
-    assert np.allclose(mesh["temperature"], simple["temp"].ravel())
+    assert np.array_equal(mesh["temperature"], simple["temp"].ravel())
     assert np.may_share_memory(mesh["temperature"], simple["temp"].ravel())
 
 
@@ -77,12 +77,12 @@ def test_air_temperature():
     assert mesh.n_points == 1325
     assert "air" in mesh.point_data
 
-    assert np.allclose(mesh["air"], da.values.ravel())
+    assert np.array_equal(mesh["air"], da.values.ravel())
     assert np.may_share_memory(mesh["air"], da.values.ravel())
-    assert np.allclose(mesh.x, da.lon)
+    assert np.array_equal(mesh.x, da.lon)
     # TODO: why `may_share_memory` failing here?
     # assert np.may_share_memory(mesh.x, da.lon)
-    assert np.allclose(mesh.y, da.lat)
+    assert np.array_equal(mesh.y, da.lat)
     # assert np.may_share_memory(mesh.y, da.lat)
 
 
@@ -90,9 +90,9 @@ def test_rioxarray(bahamas_rgb):
     da = rioxarray.open_rasterio(bahamas_rgb)
     band = da[dict(band=1)]
     mesh = band.pyvista.mesh
-    assert np.allclose(mesh["data"], band.values.ravel())
+    assert np.array_equal(mesh["data"], band.values.ravel())
     assert np.may_share_memory(mesh["data"], band.values.ravel())
-    assert np.allclose(mesh.x, band.x.values)
+    assert np.array_equal(mesh.x, band.x.values)
     assert np.may_share_memory(mesh.x, band.x.values)
-    assert np.allclose(mesh.y, band.y.values)
+    assert np.array_equal(mesh.y, band.y.values)
     assert np.may_share_memory(mesh.y, band.y.values)
