@@ -98,3 +98,44 @@ mesh.plot(cpos='xy')
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
+
+
+## StructuredGrid
+
+```py
+import pvxarray
+import rioxarray
+
+ds = xr.tutorial.open_dataset("ROMS_example.nc", chunks={"ocean_time": 1})
+
+if ds.Vtransform == 1:
+    Zo_rho = ds.hc * (ds.s_rho - ds.Cs_r) + ds.Cs_r * ds.h
+    z_rho = Zo_rho + ds.zeta * (1 + Zo_rho / ds.h)
+elif ds.Vtransform == 2:
+    Zo_rho = (ds.hc * ds.s_rho + ds.Cs_r * ds.h) / (ds.hc + ds.h)
+    z_rho = ds.zeta + (ds.zeta + ds.h) * Zo_rho
+
+ds.coords["z_rho"] = z_rho.transpose()  # needing transpose seems to be an xarray bug
+
+da = ds.salt[dict(ocean_time=0)]
+
+# Make array ordering consistent
+da = da.transpose("s_rho", "xi_rho", "eta_rho", transpose_coords=False)
+
+# Set coordinate names
+da.pyvista_structured.x_coord = "lon_rho"
+da.pyvista_structured.y_coord = "lat_rho"
+da.pyvista_structured.z_coord = "z_rho"
+
+# Grab StructuredGrid mesh
+mesh = da.pyvista_structured.mesh
+
+# Plot in 3D
+p = pv.Plotter()
+p.add_mesh(mesh, lighting=False, cmap='plasma', clim=[0, 35])
+p.view_vector([1, -1, 1])
+p.set_scale(zscale=0.001)
+p.show()
+```
+
+![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/structured.png)
