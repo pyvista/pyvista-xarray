@@ -1,5 +1,7 @@
 # PyVista xarray
 
+[![PyPI](https://img.shields.io/pypi/v/pyvista-xarray.svg?logo=python&logoColor=white)](https://pypi.org/project/pyvista-xarray/)
+
 PyVista DataArray accessor for xarray to visualize datasets in 3D
 
 
