@@ -40,8 +40,8 @@ jobs:
         with:
           name: coverage.xml
           path: coverage.xml
-      # - uses: codecov/codecov-action@v3
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     files: coverage.xml
-      #     verbose: true
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          verbose: true
