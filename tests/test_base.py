@@ -65,3 +65,27 @@ def test_bad_coord(bad_coord_names):
 
 def test_report():
     assert pvxarray.Report()
+
+
+def test_register_coord_names():
+    pvxarray.register_coord_names("ax", "by", "cz")
+    assert ("ax", "by") in pvxarray.knowledge.XY_NAMES
+    assert "cz" in pvxarray.knowledge.Z_NAMES
+    # Check with data accessor
+    ds = xr.Dataset(
+        {
+            "temperature": (["c", "a", "b", "t"], 15 + 8 * np.random.randn(2, 2, 2, 2)),
+        },
+        coords={
+            "ax": (["a"], np.array([-99.83, -99.32])),
+            "by": (["b"], np.array([42.25, 42.21])),
+            "cz": (["c"], np.array([0, 10])),
+            "t": (["t"], np.array([0.5, 1.5])),
+        },
+    )
+
+    da = ds.temperature.pyvista[dict(t=0)]
+    assert da.t == 0.5
+    assert da.pyvista.x_coord == "ax"
+    assert da.pyvista.y_coord == "by"
+    assert da.pyvista.z_coord == "cz"
