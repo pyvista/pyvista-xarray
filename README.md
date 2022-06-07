@@ -9,7 +9,7 @@ PyVista DataArray accessor for xarray to visualize datasets in 3D
 ## 🚀 Usage
 
 You must `import pvxarray` in order to register the `DataArray` accessor with
-xarray. After which, a `pyvista_*` namespace of accessors will be available.
+xarray. After which, a `pyvista` namespace of accessors will be available.
 
 The following is an example to visualize a `RectilinearGrid` with PyVista:
 
