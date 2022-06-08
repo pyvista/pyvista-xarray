@@ -51,13 +51,13 @@ def test_simple(simple):
     assert np.array_equal(mesh["temperature"], simple["temp"].ravel(order="F"))
 
 
-@pytest.mark.xfail
-def test_shared_data(simple):
-    mesh = simple["ds"].temperature.pyvista_structured.mesh
-
-    mesh["temperature"][0] = -1
-    assert simple["temp"].ravel()[0] == -1
-    assert np.array_equal(mesh["temperature"], simple["temp"].ravel(order="F"))
+# @pytest.mark.xfail
+# def test_shared_data(simple):
+#     mesh = simple["ds"].temperature.pyvista_structured.mesh
+#
+#     mesh["temperature"][0] = -1
+#     assert simple["temp"].ravel()[0] == -1
+#     assert np.array_equal(mesh["temperature"], simple["temp"].ravel(order="F"))
 
 
 def test_roms(roms):
