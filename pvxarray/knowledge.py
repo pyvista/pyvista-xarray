@@ -1,6 +1,7 @@
 XY_NAMES = {
     ("longitude", "latitude"),
     ("lon", "lat"),
+    ("long", "lat"),
     ("easting", "northing"),
     ("east", "north"),
     ("xc", "yc"),
