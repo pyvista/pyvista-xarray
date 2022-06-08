@@ -4,7 +4,7 @@ import numpy as np
 import pyvista as pv
 import xarray as xr
 
-from pvxarray import knowledge
+from pvxarray import knowledge, utils
 
 
 def _get_spatial_coords(data_array):
@@ -51,6 +51,10 @@ class BasePyVistaAccessor:
         self._x_coord = None
         self._y_coord = None
         self._z_coord = None
+
+        self._x = None
+        self._y = None
+        self._z = None
 
         self._mesh = None
 
@@ -174,9 +178,6 @@ class BasePyVistaAccessor:
 class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
     def __init__(self, xarray_obj):
         super().__init__(xarray_obj)
-        self._x = None
-        self._y = None
-        self._z = None
 
         self._mesh = pv.RectilinearGrid()
 
@@ -201,9 +202,6 @@ class PyVistaRectilinearGridAccessor(BasePyVistaAccessor):
 class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
     def __init__(self, xarray_obj):
         super().__init__(xarray_obj)
-        self._x = None
-        self._y = None
-        self._z = None
 
         self._mesh = pv.StructuredGrid()
 
@@ -229,12 +227,12 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
 
     @property
     def points(self):
-        """Generate structured points as new array."""
-        points = np.zeros((self.x.size, 3), self.x.dtype)
-        points[:, 0] = self.x.ravel(order="F")
-        points[:, 1] = self.y.ravel(order="F")
-        if self.z is not None:
-            points[:, 2] = self.z.ravel(order="F")
+        """Generate structured vtkPoints from seperately allocated arrays."""
+        if self.z is None:
+            zv = np.zeros_like(self.x).ravel(order="F")
+        else:
+            zv = self.z.ravel(order="F")
+        points = utils.soa_points(self.x.ravel(order="F"), self.y.ravel(order="F"), zv)
         return points
 
     @property
@@ -248,7 +246,7 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
 
     @property
     def mesh(self):
-        self._mesh.points = self.points
+        self._mesh.SetPoints(self.points)
         shape = self.x.shape
         self._mesh.dimensions = list(shape) + [1] * (3 - len(shape))
         self._mesh[self._obj.name or "data"] = self.data.ravel(order="F")
