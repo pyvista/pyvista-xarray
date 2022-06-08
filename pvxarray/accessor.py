@@ -227,7 +227,7 @@ class PyVistaStructuredGridAccessor(BasePyVistaAccessor):
 
     @property
     def points(self):
-        """Generate structured vtkPoints from seperately allocated arrays."""
+        """Generate structured vtkPoints from separately allocated arrays."""
         if self.z is None:
             zv = np.zeros_like(self.x).ravel(order="F")
         else:

@@ -25,7 +25,7 @@ def soa(*arrays):
 
 
 def soa_points(x, y, z):
-    """Generate vtkPoints from 3 seperately allocated numpy arrays."""
+    """Generate vtkPoints from 3 separately allocated numpy arrays."""
     data = soa(x, y, z)
     points = vtk.vtkPoints()
     points.SetData(data)
