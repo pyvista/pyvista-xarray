@@ -1,0 +1,2 @@
+class DataCopyWarning(Warning):
+    pass
