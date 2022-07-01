@@ -91,7 +91,7 @@ da = rioxarray.open_rasterio("TC_NG_SFBay_US_Geo_COG.tif")
 da = da.rio.reproject("EPSG:3857")
 
 # Grab the mesh object for use with PyVista
-mesh = da.pyvista.mesh(x="x", y="y", component="band", order="F")
+mesh = da.pyvista.mesh(x="x", y="y", component="band")
 
 mesh.plot(scalars="data", cpos='xy', rgb=True)
 ```
