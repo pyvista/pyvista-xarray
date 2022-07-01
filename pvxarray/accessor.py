@@ -62,7 +62,7 @@ class PyVistaAccessor:
                 ndim = _y.ndim
         if z is not None:
             _z = self._get_array(z)
-            if _y.ndim > ndim:
+            if _z.ndim > ndim:
                 ndim = _z.ndim
         if ndim > 1:
             # StructuredGrid
