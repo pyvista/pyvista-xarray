@@ -50,10 +50,10 @@ def mesh(
         msg = f"Dimensional mismatch between specified X, Y, Z coords and dimensionality of DataArray ({ndim} vs {values_dim})"
         if ndim > values_dim:
             raise ValueError(
-                f"{msg}. Too many coordinate dimensions specifed leave out Y and/or Z."
+                f"{msg}. Too many coordinate dimensions specified leave out Y and/or Z."
             )
         raise ValueError(
-            f"{msg}. Too few coordinate dimensions specifed. Be sure to specify Y and/or Z or reduce the dimensionality of the DataArray by indexing along non-spatial coordinates like Time."
+            f"{msg}. Too few coordinate dimensions specified. Be sure to specify Y and/or Z or reduce the dimensionality of the DataArray by indexing along non-spatial coordinates like Time."
         )
     self._mesh[self._obj.name or "data"] = values
     return self._mesh
