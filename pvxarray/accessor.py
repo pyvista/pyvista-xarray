@@ -1,6 +1,5 @@
 from typing import Optional
 
-import numpy as np
 import pyvista as pv
 import xarray as xr
 
@@ -42,7 +41,7 @@ class PyVistaAccessor:
 
     @property
     def data(self):
-        return np.squeeze(self._obj.values)
+        return self._obj.values
 
     def mesh(
         self,

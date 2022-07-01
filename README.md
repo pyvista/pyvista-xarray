@@ -34,6 +34,15 @@ mesh = da.pyvista.mesh(x="lon", y="lat")
 ![air_temperature](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/air_temperature.png)
 
 
+Or you can read VTK meshes directly to xarray:
+
+```py
+import xarray as xr
+
+ds = xr.open_dataset("data.vtk", engine="pyvista")
+ds["data array"].pyvista.plot(x="x", y="y", z="z")
+```
+
 ## ⬇️ Installation
 
 ```bash
