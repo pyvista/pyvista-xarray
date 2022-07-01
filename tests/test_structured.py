@@ -42,7 +42,7 @@ def roms():
 
 
 def test_simple(simple):
-    mesh = simple["ds"].temperature.pyvista_structured.mesh
+    mesh = simple["ds"].temperature.pyvista.mesh(x="x", y="y", z="z")
 
     assert mesh.n_points == simple["x"].size
     assert np.array_equal(mesh.x, simple["x"])
@@ -53,7 +53,7 @@ def test_simple(simple):
 
 @pytest.mark.xfail
 def test_shared_data(simple):
-    mesh = simple["ds"].temperature.pyvista_structured.mesh
+    mesh = simple["ds"].temperature.pyvista.mesh
 
     mesh["temperature"][0] = -1
     assert simple["temp"].ravel()[0] == -1
@@ -67,13 +67,8 @@ def test_roms(roms):
     # Make array ordering consistent
     da = da.transpose("s_rho", "xi_rho", "eta_rho", transpose_coords=False)
 
-    # Set coordinate names
-    da.pyvista_structured.x_coord = "lon_rho"
-    da.pyvista_structured.y_coord = "lat_rho"
-    da.pyvista_structured.z_coord = "z_rho"
-
     # Grab StructuredGrid mesh
-    mesh = da.pyvista_structured.mesh
+    mesh = da.pyvista.mesh(x="lon_rho", y="lat_rho", z="z_rho")
 
     assert np.allclose(mesh["salt"], da.values.ravel(order="F"), equal_nan=True)
     assert np.allclose(mesh.z, da.z_rho, equal_nan=True)

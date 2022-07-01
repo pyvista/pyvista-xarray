@@ -21,10 +21,10 @@ ds = xr.tutorial.load_dataset("air_temperature")
 da = ds.air[dict(time=0)]  # Select DataArray for a timestep
 
 # Plot in 3D
-da.pyvista.plot(show_edges=True, cpos='xy')
+da.pyvista.plot(x="lon", y="lat", show_edges=True, cpos='xy')
 
 # Or grab the mesh object for use with PyVista
-mesh = da.pyvista.mesh
+mesh = da.pyvista.mesh(x="lon", y="lat")
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/air_temperature.png' -->
@@ -74,7 +74,7 @@ ds = xr.Dataset(
     },
 )
 
-mesh = ds.temperature.pyvista.mesh
+mesh = ds.temperature.pyvista.mesh(x="lon", y="lat", z="z")
 mesh.plot()
 ```
 
@@ -88,13 +88,10 @@ import xarray as xr
 da = rioxarray.open_rasterio("TC_NG_SFBay_US_Geo_COG.tif")
 da = da.rio.reproject("EPSG:3857")
 
-# Grab a single band
-band = da[dict(band=0)]
-
 # Grab the mesh object for use with PyVista
-mesh = band.pyvista.mesh
+mesh = da.pyvista.mesh(x="x", y="y", component="band")
 
-mesh.plot(cpos='xy')
+mesh.plot(scalars="data", cpos='xy', rgb=True)
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
@@ -109,7 +106,7 @@ da = rioxarray.open_rasterio("Elevation.tif")
 da = da.rio.reproject("EPSG:3857")
 
 # Grab the mesh object for use with PyVista
-mesh = da.pyvista.mesh
+mesh = da.pyvista.mesh(x="x", y="y")
 
 # Warp top and plot in 3D
 mesh.warp_by_scalar().plot()
@@ -124,6 +121,7 @@ mesh.warp_by_scalar().plot()
 ```py
 import pvxarray
 import rioxarray
+import pyvista as pv
 
 ds = xr.tutorial.open_dataset("ROMS_example.nc", chunks={"ocean_time": 1})
 
@@ -141,13 +139,8 @@ da = ds.salt[dict(ocean_time=0)]
 # Make array ordering consistent
 da = da.transpose("s_rho", "xi_rho", "eta_rho", transpose_coords=False)
 
-# Set coordinate names
-da.pyvista_structured.x_coord = "lon_rho"
-da.pyvista_structured.y_coord = "lat_rho"
-da.pyvista_structured.z_coord = "z_rho"
-
 # Grab StructuredGrid mesh
-mesh = da.pyvista_structured.mesh
+mesh = da.pyvista.mesh(x="lon_rho", y="lat_rho", z="z_rho")
 
 # Plot in 3D
 p = pv.Plotter()

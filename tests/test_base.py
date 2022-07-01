@@ -6,7 +6,7 @@ import pvxarray
 
 
 @pytest.fixture
-def bad_coord_names():
+def sample():
     temp = 15 + 8 * np.random.randn(2, 2, 2, 2)
     return xr.Dataset(
         {
@@ -21,71 +21,30 @@ def bad_coord_names():
     ).temperature
 
 
-@pytest.fixture
-def good_coord_names(bad_coord_names):
-    bad_coord_names.pyvista.x_coord = "ux"
-    bad_coord_names.pyvista.y_coord = "uy"
-    bad_coord_names.pyvista.z_coord = "uz"
-    return bad_coord_names
-
-
-def test_indexing(good_coord_names):
-    ds = good_coord_names.pyvista[dict(t=0)]
+def test_indexing(sample):
+    ds = sample.pyvista[dict(t=0)]
     assert ds.t == 0.5
-    ds = good_coord_names.pyvista[dict(t=1)]
+    ds = sample.pyvista[dict(t=1)]
     assert ds.t == 1.5
-    ds = good_coord_names.pyvista.loc[dict(t=0.5)]
+    ds = sample.pyvista.loc[dict(t=0.5)]
     assert ds.t == 0.5
-    ds = good_coord_names.pyvista.loc[dict(t=1.5)]
+    ds = sample.pyvista.loc[dict(t=1.5)]
     assert ds.t == 1.5
-
-
-def test_set_bad_coord(bad_coord_names):
-    ds = bad_coord_names[dict(t=0)]
-    with pytest.raises(KeyError):
-        ds.pyvista.x_coord = "foo"
-    with pytest.raises(KeyError):
-        ds.pyvista.y_coord = "foo"
-    with pytest.raises(KeyError):
-        ds.pyvista.z_coord = "foo"
-
-
-def test_bad_coord(bad_coord_names):
-    ds = bad_coord_names[dict(t=0)]
-    assert ds.pyvista.x_coord is None
-    assert ds.pyvista.y_coord is None
-    assert ds.pyvista.z_coord is None
-    with pytest.raises(ValueError):
-        ds.pyvista.x
-    with pytest.raises(ValueError):
-        ds.pyvista.y
-    with pytest.raises(ValueError):
-        ds.pyvista.mesh
 
 
 def test_report():
     assert pvxarray.Report()
 
 
-def test_register_coord_names():
-    pvxarray.register_coord_names("ax", "by", "cz")
-    assert ("ax", "by") in pvxarray.knowledge.XY_NAMES
-    assert "cz" in pvxarray.knowledge.Z_NAMES
-    # Check with data accessor
-    ds = xr.Dataset(
-        {
-            "temperature": (["c", "a", "b", "t"], 15 + 8 * np.random.randn(2, 2, 2, 2)),
-        },
-        coords={
-            "ax": (["a"], np.array([-99.83, -99.32])),
-            "by": (["b"], np.array([42.25, 42.21])),
-            "cz": (["c"], np.array([0, 10])),
-            "t": (["t"], np.array([0.5, 1.5])),
-        },
-    )
+def test_bad_key(sample):
+    with pytest.raises(KeyError):
+        sample[dict(t=0)].pyvista.mesh(x="foo")
+    with pytest.raises(KeyError):
+        sample[dict(t=0)].pyvista.mesh(x="ux", y="hello")
+    mesh = sample[dict(t=0)].pyvista.mesh(x="ux", y="uy", z="uz")
+    assert mesh.n_points
 
-    da = ds.temperature.pyvista[dict(t=0)]
-    assert da.t == 0.5
-    assert da.pyvista.x_coord == "ax"
-    assert da.pyvista.y_coord == "by"
-    assert da.pyvista.z_coord == "cz"
+
+def test_forgot_choose_time(sample):
+    with pytest.raises(ValueError):
+        sample.pyvista.mesh(x="ux", y="uy", z="uz")

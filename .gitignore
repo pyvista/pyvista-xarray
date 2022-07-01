@@ -12,3 +12,5 @@ bin/
 Untitled*.ipynb
 htmlcov/
 coverage.xml
+scripts/
+cache/
