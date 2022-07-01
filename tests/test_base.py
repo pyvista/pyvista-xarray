@@ -43,3 +43,8 @@ def test_bad_key(sample):
         sample[dict(t=0)].pyvista.mesh(x="ux", y="hello")
     mesh = sample[dict(t=0)].pyvista.mesh(x="ux", y="uy", z="uz")
     assert mesh.n_points
+
+
+def test_forgot_choose_time(sample):
+    with pytest.raises(ValueError):
+        sample.pyvista.mesh(x="ux", y="uy", z="uz")
