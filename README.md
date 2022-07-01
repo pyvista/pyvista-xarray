@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/pyvista-xarray.svg?logo=python&logoColor=white)](https://pypi.org/project/pyvista-xarray/)
 [![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
+[![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
 PyVista DataArray accessor for xarray to visualize datasets in 3D
 
@@ -10,6 +11,8 @@ PyVista DataArray accessor for xarray to visualize datasets in 3D
 
 You must `import pvxarray` in order to register the `DataArray` accessor with
 xarray. After which, a `pyvista` namespace of accessors will be available.
+
+Try on MyBinder: https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD
 
 The following is an example to visualize a `RectilinearGrid` with PyVista:
 

@@ -1,6 +1,6 @@
 codespell
 flake8
-black
+black[jupyter]
 isort
 pydocstyle
 flake8-black
