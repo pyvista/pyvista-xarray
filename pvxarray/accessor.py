@@ -66,10 +66,11 @@ class PyVistaAccessor:
                 ndim = _z.ndim
         if ndim > 1:
             # StructuredGrid
-            return structured.mesh(self, x=x, y=y, z=z, order=order, component=component)
+            meth = structured.mesh
         else:
             # RectilinearGrid
-            return rectilinear.mesh(self, x=x, y=y, z=z, order=order, component=component)
+            meth = rectilinear.mesh
+        return meth(self, x=x, y=y, z=z, order=order, component=component)
 
     def plot(
         self,
