@@ -2,9 +2,9 @@
 
 [![PyPI](https://img.shields.io/pypi/v/pyvista-xarray.svg?logo=python&logoColor=white)](https://pypi.org/project/pyvista-xarray/)
 [![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
+[![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
 PyVista DataArray accessor for xarray to visualize datasets in 3D
-
 
 ## 🚀 Usage
 
@@ -28,8 +28,8 @@ mesh = da.pyvista.mesh
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/air_temperature.png' -->
-![air_temperature](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/air_temperature.png)
 
+![air_temperature](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/air_temperature.png)
 
 ## ⬇️ Installation
 
@@ -37,8 +37,8 @@ mesh = da.pyvista.mesh
 pip install pyvista-xarray
 ```
 
-
 ## 💭 Feedback
+
 Please share your thoughts and questions on the Discussions board. If you would
 like to report any bugs or make feature requests, please open an issue.
 
@@ -48,7 +48,6 @@ If filing a bug report, please share a scooby Report:
 import pvxarray
 print(pvxarray.Report())
 ```
-
 
 ## 🏏 Further Examples
 
@@ -79,7 +78,6 @@ mesh = ds.temperature.pyvista.mesh
 mesh.plot()
 ```
 
-
 ## Raster with rioxarray
 
 ```py
@@ -100,6 +98,7 @@ mesh.plot(cpos='xy')
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
+
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
 
 ```py
@@ -117,8 +116,8 @@ mesh.warp_by_scalar().plot()
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/topo.png' -->
-![topo](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/topo.png)
 
+![topo](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/topo.png)
 
 ## StructuredGrid
 
