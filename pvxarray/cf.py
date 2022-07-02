@@ -9,4 +9,5 @@ def get_cf_names(da):
     x = axes.get("X", [None])[0]
     y = axes.get("Y", [None])[0]
     z = axes.get("Z", [None])[0]
-    return x, y, z
+    t = axes.get("T", [None])[0]
+    return x, y, z, t

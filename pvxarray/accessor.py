@@ -54,7 +54,7 @@ class PyVistaAccessor:
     ) -> pv.DataSet:
         if (3 - (x, y, z).count(None)) < 1:
             try:
-                x, y, z = get_cf_names(self._obj)
+                x, y, z, _ = get_cf_names(self._obj)
             except ImportError:
                 raise ValueError(
                     "You must specify at least one dimension as X, Y, or Z or install `cf_xarray`."
