@@ -4,7 +4,7 @@ def get_cf_names(da):
         import cf_xarray  # noqa
 
         axes = da.cf.axes
-    except (AttributeError, ImportError):
+    except (AttributeError, ImportError):  # pragma: no cover
         raise ImportError("Please install `cf_xarray` to use CF conventions.")
     x = axes.get("X", [None])[0]
     y = axes.get("Y", [None])[0]
