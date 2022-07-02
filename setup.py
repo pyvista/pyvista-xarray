@@ -42,5 +42,7 @@ setup(
         "pyvista",  # TODO: set minimum version for shared array patch in https://github.com/pyvista/pyvista/pull/2697
         "scooby",
     ],
-    entry_points={},
+    entry_points={
+        "xarray.backends": ["pyvista=pvxarray.io:PyVistaBackendEntrypoint"],
+    },
 )
