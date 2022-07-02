@@ -23,6 +23,10 @@ def vti_path():
     return Path(Path(__file__).parent, "data", "wavelet.vti").absolute()
 
 
+def test_engine_is_available():
+    assert "pyvista" in xr.backends.list_engines()
+
+
 def test_read_vtr(vtr_path):
     ds = xr.open_dataset(vtr_path, engine="pyvista")
     truth = pv.RectilinearGrid(vtr_path)

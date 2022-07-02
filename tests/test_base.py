@@ -21,6 +21,11 @@ def sample():
     ).temperature
 
 
+def test_accessor_available():
+    da = xr.DataArray()
+    assert hasattr(da, "pyvista")
+
+
 def test_indexing(sample):
     ds = sample.pyvista[dict(t=0)]
     assert ds.t == 0.5
