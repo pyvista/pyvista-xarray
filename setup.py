@@ -20,7 +20,7 @@ __version__ = ".".join(map(str, version_info))
 setup(
     name="pyvista-xarray",
     version=__version__,
-    description="PyVista DataArray accessors for xarray",
+    description="xarray DataArray accessors for PyVista",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Kitware, Inc.",

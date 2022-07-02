@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
 [![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
-PyVista DataArray accessor for xarray to visualize datasets in 3D
+xarray DataArray accessors for PyVista to visualize datasets in 3D
 
 
 ## 🚀 Usage
