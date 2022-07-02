@@ -28,6 +28,7 @@ def test_read_vtr(vtr_path):
     assert np.allclose(ds["x"].values, truth.x)
     assert np.allclose(ds["y"].values, truth.y)
     assert np.allclose(ds["z"].values, truth.z)
+    assert ds["air"].pyvista.mesh(x="x", y="y", z="z") == truth
 
 
 def test_read_vti(vti_path):
@@ -37,6 +38,7 @@ def test_read_vti(vti_path):
     assert np.allclose(ds["x"].values, truth.x)
     assert np.allclose(ds["y"].values, truth.y)
     assert np.allclose(ds["z"].values, truth.z)
+    assert ds["RTData"].pyvista.mesh(x="x", y="y", z="z") == truth
 
 
 def test_read_vts(vts_path):
@@ -46,3 +48,4 @@ def test_read_vts(vts_path):
     assert np.allclose(ds["x"].values, truth.x)
     assert np.allclose(ds["y"].values, truth.y)
     assert np.allclose(ds["z"].values, truth.z)
+    assert ds["Elevation"].pyvista.mesh(x="x", y="y", z="z") == truth
