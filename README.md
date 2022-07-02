@@ -45,10 +45,22 @@ ds["data array"].pyvista.plot(x="x", y="y", z="z")
 
 ## ⬇️ Installation
 
+### 🐍 Installing with `conda`
+
+Conda makes managing `pyvista-xarray`'s dependencies across platforms quite
+easy and this is the recommended method to install:
+
+```bash
+conda install -c conda-forge pyvista-xarray
+```
+
+### 🎡 Installing with `pip`
+
+If you prefer pip, then you can install from PyPI: https://pypi.org/project/pyvista-xarray/
+
 ```bash
 pip install pyvista-xarray
 ```
-
 
 ## 💭 Feedback
 Please share your thoughts and questions on the Discussions board. If you would
