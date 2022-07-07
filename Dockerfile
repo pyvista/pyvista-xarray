@@ -9,6 +9,6 @@ RUN pip install .
 
 USER jovyan
 WORKDIR ${HOME}
-COPY tests/data/bahamas_rgb.tif ${HOME}/bahamas_rgb.tif
+COPY tests/data/Elevation.tif ${HOME}/Elevation.tif
 COPY examples/ ${HOME}
 ENV PYVISTA_OFF_SCREEN=true

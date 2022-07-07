@@ -1,7 +1,7 @@
 from io import open as io_open
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 dirname = os.path.dirname(__file__)
 readme_file = os.path.join(dirname, "README.md")
@@ -26,7 +26,7 @@ setup(
     author="Kitware, Inc.",
     author_email="kitware@kitware.com",
     url="https://github.com/pyvista/pyvista-xarray",
-    packages=find_packages(),
+    packages=["pvxarray"],
     include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
