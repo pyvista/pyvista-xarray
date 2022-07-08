@@ -41,6 +41,11 @@ def test_report():
     assert pvxarray.Report()
 
 
+def test_no_cf_and_no_names(sample):
+    with pytest.raises(ValueError):
+        sample[dict(t=0)].pyvista.mesh()
+
+
 def test_bad_key(sample):
     with pytest.raises(KeyError):
         sample[dict(t=0)].pyvista.mesh(x="foo")

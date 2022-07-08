@@ -4,6 +4,7 @@ import pyvista as pv
 import xarray as xr
 
 from pvxarray import rectilinear, structured
+from pvxarray.cf import get_cf_names
 
 
 class _LocIndexer:
@@ -51,6 +52,15 @@ class PyVistaAccessor:
         order: Optional[str] = None,
         component: Optional[str] = None,
     ) -> pv.DataSet:
+        if (3 - (x, y, z).count(None)) < 1:
+            try:
+                x, y, z, _ = get_cf_names(self._obj)
+            except ImportError:  # pragma: no cover
+                pass
+        if (3 - (x, y, z).count(None)) < 1:
+            raise ValueError(
+                "You must specify at least one dimension as X, Y, or Z or install `cf_xarray`."
+            )
         ndim = 0
         if x is not None:
             _x = self._get_array(x)
