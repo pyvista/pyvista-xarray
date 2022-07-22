@@ -1,9 +1,12 @@
 from typing import Optional
+import warnings
 
+import numpy as np
 import pyvista as pv
 import xarray as xr
 
 from pvxarray import rectilinear, structured
+from pvxarray.errors import DataCopyWarning, DataModificationWarning
 
 
 class _LocIndexer:
@@ -39,9 +42,28 @@ class PyVistaAccessor:
                 f"Key {key} not present in DataArray. Choices are: {list(self._obj.coords.keys())}"
             )
 
-    @property
-    def data(self):
-        return self._obj.values
+    def data(self, nodata: Optional[float] = None):
+        values = self._obj.values
+        if nodata is not None:
+            nans = values == nodata
+            if np.any(nans):
+                try:
+                    values[nans] = np.nan
+                    warnings.warn(
+                        DataModificationWarning(
+                            "nodata values overwritten with `np.nan` in source DataArray."
+                        )
+                    )
+                except ValueError:
+                    dytpe = values.dtype
+                    values = values.astype(float)
+                    values[nans] = np.nan
+                    warnings.warn(
+                        DataCopyWarning(
+                            f"{dytpe} does not support overwritting values with nan. Copying and casting these data to float."
+                        )
+                    )
+        return values
 
     def mesh(
         self,
@@ -50,6 +72,7 @@ class PyVistaAccessor:
         z: Optional[str] = None,
         order: Optional[str] = None,
         component: Optional[str] = None,
+        nodata: Optional[float] = None,
     ) -> pv.DataSet:
         ndim = 0
         if x is not None:
@@ -69,7 +92,7 @@ class PyVistaAccessor:
         else:
             # RectilinearGrid
             meth = rectilinear.mesh
-        return meth(self, x=x, y=y, z=z, order=order, component=component)
+        return meth(self, x=x, y=y, z=z, order=order, component=component, nodata=nodata)
 
     def plot(
         self,
@@ -77,6 +100,7 @@ class PyVistaAccessor:
         y: Optional[str] = None,
         z: Optional[str] = None,
         order: str = "C",
+        nodata: Optional[float] = None,
         **kwargs,
     ):
-        return self.mesh(x=x, y=y, z=z, order=order).plot(**kwargs)
+        return self.mesh(x=x, y=y, z=z, order=order, nodata=nodata).plot(**kwargs)
