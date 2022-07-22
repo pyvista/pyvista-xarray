@@ -13,6 +13,7 @@ def mesh(
     z: Optional[str] = None,
     order: Optional[str] = "C",
     component: Optional[str] = None,
+    nodata: Optional[float] = None,
 ):
     if order is None:
         order = "C"
@@ -28,7 +29,7 @@ def mesh(
     if z is not None:
         self._mesh.z = self._get_array(z)
     # Handle data values
-    values = self.data
+    values = self.data(nodata=nodata)
     values_dim = values.ndim
     if component is not None:
         # if ndim < values.ndim and values.ndim == ndim + 1:

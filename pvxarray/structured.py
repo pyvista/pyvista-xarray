@@ -76,6 +76,7 @@ def mesh(
     z: Optional[str] = None,
     order: str = "F",
     component: Optional[str] = None,  # TODO
+    nodata: Optional[float] = None,
 ):
     if order is None:
         order = "F"
@@ -89,7 +90,7 @@ def mesh(
     points, shape = _points(self, x=x, y=y, z=z, order=order)
     self._mesh.points = points
     self._mesh.dimensions = shape
-    data = self.data
+    data = self.data(nodata=nodata)
     if tuple(data.shape) != tuple(shape):
         raise ValueError(
             "Coord and data shape mismatch. You may need to `transpose` the DataArray. "
