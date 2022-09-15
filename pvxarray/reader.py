@@ -80,7 +80,8 @@ class PyVistaXarraySource(BaseSource):
         return np.pad(rate, (0, 3 - len(rate)), mode="constant")
 
     def RequestData(self, request, inInfo, outInfo):
-        # Use open data_array handle to fetch data at desired LOD
+        # Use open data_array handle to fetch data at
+        # desired Level of Detail
         rx, ry, rz = self.resolution_to_sampling_rate()
         if self._data_array.ndim == 1:
             da = self._data_array[::rx]
