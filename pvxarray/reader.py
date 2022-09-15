@@ -14,11 +14,7 @@ class BaseSource(VTKPythonAlgorithmBase):
 
     def GetOutput(self, port=0):
         output = pv.wrap(self.GetOutputDataObject(port))
-        if (
-            hasattr(output, "active_scalars")
-            and not output.active_scalars is not None
-            and output.n_arrays
-        ):
+        if output.active_scalars is None and output.n_arrays:
             if len(output.point_data):
                 output.set_active_scalars(output.point_data.keys()[0])
             elif len(output.cell_data):
@@ -64,6 +60,19 @@ class PyVistaXarraySource(BaseSource):
         self._order = order
         self._component = component
 
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def resolution(self):
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, resolution: int):
+        self._resolution = resolution
+        self.Modified()
+
     def resolution_to_sampling_rate(self):
         shape = np.array(self._data_array.shape)
         n = np.floor(shape * self._resolution).astype(int)
@@ -89,16 +98,3 @@ class PyVistaXarraySource(BaseSource):
         pdo = self.GetOutputData(outInfo, 0)
         pdo.ShallowCopy(mesh)
         return 1
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @property
-    def resolution(self):
-        return self._resolution
-
-    @resolution.setter
-    def resolution(self, resolution: int):
-        self._resolution = resolution
-        self.Modified()
