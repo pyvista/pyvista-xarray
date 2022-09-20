@@ -4,3 +4,4 @@ from pvxarray.accessor import PyVistaAccessor
 from pvxarray.errors import DataCopyWarning
 from pvxarray.io import pyvista_to_xarray
 from pvxarray.report import Report
+from pvxarray.vtk_source import PyVistaXarraySource

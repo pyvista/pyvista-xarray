@@ -20,7 +20,7 @@ doctest:
 
 lint:
 	@echo "Linting with flake8"
-	flake8 --ignore=E501 pvxarray tests
+	flake8 --ignore=E501 pvxarray tests examples
 
 format:
 	@echo "Formatting"
