@@ -74,9 +74,10 @@ class PyVistaXarraySource(BaseSource):
         self.Modified()
 
     def resolution_to_sampling_rate(self):
+        """Convert percentage to sampling rate."""
         shape = np.array(self._data_array.shape)
-        n = np.floor(shape * self._resolution).astype(int)
-        rate = shape // n
+        n = np.floor(shape * self._resolution)
+        rate = np.ceil(shape / n).astype(int)
         return np.pad(rate, (0, 3 - len(rate)), mode="constant")
 
     def RequestData(self, request, inInfo, outInfo):

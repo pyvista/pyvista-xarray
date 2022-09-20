@@ -1,7 +1,7 @@
-import pyvista as pv
+import geovista as gv
 from trame.app import get_server
 from trame.ui.vuetify import SinglePageLayout
-from trame.widgets import vtk, vuetify
+from trame.widgets import vtk as trame_vtk, vuetify
 import xarray as xr
 
 from pvxarray.reader import PyVistaXarraySource
@@ -18,20 +18,44 @@ state.trame__title = "PyVista Xarray Level of Detail"
 
 ds = xr.open_dataset("oisst-avhrr-v02r01.19810901.nc")
 da = ds.err[dict(time=0, zlev=0)]
-source = PyVistaXarraySource(da, x="lon", y="lat")
+source = PyVistaXarraySource(da, x="lon", y="lat", resolution=0.25)
 
 # -----------------------------------------------------------------------------
-plotter = pv.Plotter(off_screen=True)
-# Requires https://github.com/pyvista/pyvista/pull/3318
-plotter.add_mesh(source, name="data_array", show_edges=True)
-plotter.view_xy()
+DS_NAME = "mydata"
+
+
+def apply(resolution):
+    source.resolution = resolution
+    src = source.apply()
+    return gv.Transform.from_1d(src.x, src.y, data=src.active_scalars).threshold()
+
+
+mesh = apply(0.25)
+
+plotter = gv.GeoPlotter(off_screen=True)
 
 
 @state.change("resolution")
 def update_resolution(resolution=25, **kwargs):
-    source.resolution = resolution / 100.0
-    source.Update()
+    # mesh.overwrite(apply(resolution / 100.0))
+    mesh = apply(resolution / 100.0)
+    plotter.remove_actor(DS_NAME)
+    plotter.add_mesh(mesh, cmap="coolwarm", show_edges=True, name=DS_NAME)
     ctrl.view_update()
+
+
+plotter.add_mesh(mesh, cmap="coolwarm", show_edges=True, name=DS_NAME)
+plotter.add_base_layer(texture=gv.blue_marble())
+resolution = "10m"
+plotter.add_coastlines(resolution=resolution, color="white")
+plotter.add_axes()
+plotter.add_text(
+    f"NOAA/NCEI OISST AVHRR ({resolution} Coastlines)",
+    position="upper_left",
+    font_size=10,
+    shadow=True,
+)
+plotter.view_isometric()
 
 
 # -----------------------------------------------------------------------------
@@ -56,7 +80,7 @@ with SinglePageLayout(server) as layout:
         # )
         vuetify.VSelect(
             label="Resolution %",
-            v_model=("resolution", 5),
+            v_model=("resolution", 25),
             items=("array_list", [5, 25, 50, 100]),
             hide_details=True,
             dense=True,
@@ -70,7 +94,7 @@ with SinglePageLayout(server) as layout:
             fluid=True,
             classes="pa-0 fill-height",
         ):
-            view = vtk.VtkRemoteView(
+            view = trame_vtk.VtkRemoteView(
                 plotter.ren_win,
                 ref="view",
                 interactive_ratio=1,
