@@ -4,7 +4,7 @@ from trame.ui.vuetify import SinglePageLayout
 from trame.widgets import vtk as trame_vtk, vuetify
 import xarray as xr
 
-from pvxarray.reader import PyVistaXarraySource
+from pvxarray.vtk_source import PyVistaXarraySource
 
 server = get_server()
 state, ctrl = server.state, server.controller
