@@ -5,13 +5,12 @@ from trame.ui.vuetify import SinglePageLayout
 from trame.widgets import vtk, vuetify
 import xarray as xr
 
-import pvxarray
 from pvxarray.reader import PyVistaXarraySource
 
 server = get_server()
 state, ctrl = server.state, server.controller
 
-state.trame__title = "PyVista xarray level of detail"
+state.trame__title = "PyVista Xarray Level of Detail"
 
 # -----------------------------------------------------------------------------
 # ds = xr.tutorial.load_dataset("air_temperature")
@@ -24,7 +23,8 @@ source = PyVistaXarraySource(da, x="lon", y="lat")
 
 # -----------------------------------------------------------------------------
 plotter = pv.Plotter(off_screen=True)
-plotter.add_mesh(source, name="data_Array", show_edges=True)
+# Requires https://github.com/pyvista/pyvista/pull/3318
+plotter.add_mesh(source, name="data_array", show_edges=True)
 plotter.view_xy()
 
 
@@ -45,15 +45,25 @@ with SinglePageLayout(server) as layout:
 
     with layout.toolbar:
         vuetify.VSpacer()
-        vuetify.VSlider(
-            v_model=("resolution", 25),
-            min=5,
-            max=100,
-            step=1,
+        # vuetify.VSlider(
+        #     v_model=("resolution", 25),
+        #     min=5,
+        #     max=100,
+        #     step=1,
+        #     hide_details=True,
+        #     label="Resolution",
+        #     dense=True,
+        #     style="max-width: 300px",
+        # )
+        vuetify.VSelect(
+            label="Resolution %",
+            v_model=("resolution", 5),
+            items=("array_list", [5, 25, 50, 75, 100]),
             hide_details=True,
-            label="Resolution",
             dense=True,
-            style="max-width: 300px",
+            outlined=True,
+            classes="pt-1 ml-2",
+            style="max-width: 150px",
         )
 
     with layout.content:
