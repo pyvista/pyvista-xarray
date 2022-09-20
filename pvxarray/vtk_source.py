@@ -41,6 +41,7 @@ class PyVistaXarraySource(BaseSource):
         x: Optional[str] = None,
         y: Optional[str] = None,
         z: Optional[str] = None,
+        time: Optional[str] = None,
         order: Optional[str] = "C",
         component: Optional[str] = None,
         resolution: float = 1.0,
@@ -60,6 +61,13 @@ class PyVistaXarraySource(BaseSource):
         self._order = order
         self._component = component
 
+        self._time = None
+        self._time_index = 0
+        if isinstance(time, str):
+            self._time = time
+        elif time is not None:
+            raise TypeError
+
     @property
     def dataset(self):
         return self._dataset
@@ -73,23 +81,38 @@ class PyVistaXarraySource(BaseSource):
         self._resolution = resolution
         self.Modified()
 
-    def resolution_to_sampling_rate(self):
+    def resolution_to_sampling_rate(self, data_array):
         """Convert percentage to sampling rate."""
-        shape = np.array(self._data_array.shape)
+        shape = np.array(data_array.shape)
         n = np.floor(shape * self._resolution)
         rate = np.ceil(shape / n).astype(int)
         return np.pad(rate, (0, 3 - len(rate)), mode="constant")
 
+    @property
+    def time_index(self):
+        return self._time_index
+
+    @time_index.setter
+    def time_index(self, time_index: int):
+        # TODO: hook into the VTK pipeling to get requested time
+        self._time_index = time_index
+        self.Modified()
+
     def RequestData(self, request, inInfo, outInfo):
         # Use open data_array handle to fetch data at
         # desired Level of Detail
-        rx, ry, rz = self.resolution_to_sampling_rate()
-        if self._data_array.ndim == 1:
-            da = self._data_array[::rx]
-        elif self._data_array.ndim == 2:
-            da = self._data_array[::rx, ::ry]
-        elif self._data_array.ndim == 3:
-            da = self._data_array[::rx, ::ry, ::rz]
+        if self._time is not None:
+            da = self._data_array[{self._time: self.time_index}]
+        else:
+            da = self._data_array
+
+        rx, ry, rz = self.resolution_to_sampling_rate(da)
+        if da.ndim == 1:
+            da = da[::rx]
+        elif da.ndim == 2:
+            da = da[::rx, ::ry]
+        elif da.ndim == 3:
+            da = da[::rx, ::ry, ::rz]
         else:
             raise ValueError
 

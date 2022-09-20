@@ -12,13 +12,13 @@ state, ctrl = server.state, server.controller
 state.trame__title = "PyVista Xarray Level of Detail"
 
 # -----------------------------------------------------------------------------
-# ds = xr.tutorial.load_dataset("air_temperature")
-# da = ds.air[dict(time=0)]  # Select DataArray for a timestep
-# source = PyVistaXarraySource(da, x="lon", y="lat")
+ds = xr.tutorial.load_dataset("air_temperature")
+da = ds.air
+source = PyVistaXarraySource(da, x="lon", y="lat", time="time")
 
-ds = xr.open_dataset("oisst-avhrr-v02r01.19810901.nc")
-da = ds.err[dict(time=0, zlev=0)]
-source = PyVistaXarraySource(da, x="lon", y="lat")
+# ds = xr.open_dataset("oisst-avhrr-v02r01.19810901.nc")
+# da = ds.err[dict(time=0, zlev=0)]
+# source = PyVistaXarraySource(da, x="lon", y="lat")
 
 # -----------------------------------------------------------------------------
 plotter = pv.Plotter(off_screen=True)
@@ -34,6 +34,13 @@ def update_resolution(resolution=25, **kwargs):
     ctrl.view_update()
 
 
+@state.change("time_index")
+def update_time_index(time_index=0, **kwargs):
+    source.time_index = time_index
+    source.Update()
+    ctrl.view_update()
+
+
 # -----------------------------------------------------------------------------
 # GUI
 # -----------------------------------------------------------------------------
@@ -44,19 +51,19 @@ with SinglePageLayout(server) as layout:
 
     with layout.toolbar:
         vuetify.VSpacer()
-        # vuetify.VSlider(
-        #     v_model=("resolution", 25),
-        #     min=5,
-        #     max=100,
-        #     step=1,
-        #     hide_details=True,
-        #     label="Resolution",
-        #     dense=True,
-        #     style="max-width: 300px",
-        # )
+        vuetify.VSlider(
+            v_model=("time_index", 0),
+            min=0,
+            max=len(da.time),
+            step=1,
+            hide_details=True,
+            label="Time Index",
+            dense=True,
+            style="max-width: 300px",
+        )
         vuetify.VSelect(
             label="Resolution %",
-            v_model=("resolution", 5),
+            v_model=("resolution", 25),
             items=("array_list", [5, 25, 50, 100]),
             hide_details=True,
             dense=True,
