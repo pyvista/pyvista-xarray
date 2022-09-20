@@ -69,8 +69,8 @@ class PyVistaXarraySource(BaseSource):
             raise TypeError
 
     @property
-    def dataset(self):
-        return self._dataset
+    def data_array(self):
+        return self._data_array
 
     @property
     def resolution(self):
@@ -102,9 +102,9 @@ class PyVistaXarraySource(BaseSource):
         # Use open data_array handle to fetch data at
         # desired Level of Detail
         if self._time is not None:
-            da = self._data_array[{self._time: self.time_index}]
+            da = self.data_array[{self._time: self.time_index}]
         else:
-            da = self._data_array
+            da = self.data_array
 
         rx, ry, rz = self.resolution_to_sampling_rate(da)
         if da.ndim == 1:
