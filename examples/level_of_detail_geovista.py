@@ -14,7 +14,7 @@ state.trame__title = "PyVista Xarray Level of Detail"
 # -----------------------------------------------------------------------------
 ds = xr.tutorial.load_dataset("air_temperature")
 da = ds.air
-source = PyVistaXarraySource(da, x="lon", y="lat", time="time")
+source = PyVistaXarraySource(da, x="lon", y="lat", time="time", resolution=1.0)
 
 # ds = xr.open_dataset("oisst-avhrr-v02r01.19810901.nc")
 # da = ds.err[dict(time=0, zlev=0)]
@@ -81,7 +81,7 @@ with SinglePageLayout(server) as layout:
         vuetify.VSlider(
             v_model=("time_index", 0),
             min=0,
-            max=len(da.time),
+            max=len(da.time) - 1,
             step=1,
             hide_details=True,
             label="Time Index",
@@ -90,7 +90,7 @@ with SinglePageLayout(server) as layout:
         )
         vuetify.VSelect(
             label="Resolution %",
-            v_model=("resolution", 25),
+            v_model=("resolution", source.resolution * 100.0),
             items=("array_list", [5, 25, 50, 100]),
             hide_details=True,
             dense=True,
