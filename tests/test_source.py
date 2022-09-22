@@ -16,14 +16,14 @@ def test_vtk_source():
     assert "air" in mesh.point_data
 
     assert np.array_equal(mesh["air"], da[dict(time=0)].values.ravel())
-    # assert np.may_share_memory(mesh["air"], da[dict(time=0)].values.ravel())
+    assert np.may_share_memory(mesh["air"], da[dict(time=0)].values.ravel())
     assert np.array_equal(mesh.x, da.lon)
     assert np.array_equal(mesh.y, da.lat)
 
     source.time_index = 1
     mesh = source.apply()
     assert np.array_equal(mesh["air"], da[dict(time=1)].values.ravel())
-    # assert np.may_share_memory(mesh["air"], da[dict(time=1)].values.ravel())
+    assert np.may_share_memory(mesh["air"], da[dict(time=1)].values.ravel())
 
     source.resolution = 0.5
     mesh = source.apply()

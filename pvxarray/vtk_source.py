@@ -108,11 +108,20 @@ class PyVistaXarraySource(BaseSource):
 
         rx, ry, rz = self.resolution_to_sampling_rate(da)
         if da.ndim == 1:
-            da = da[::rx]
+            if rx == 1:
+                pass
+            else:
+                da = da[::rx]
         elif da.ndim == 2:
-            da = da[::rx, ::ry]
+            if rx == 1 and ry == 1:
+                pass
+            else:
+                da = da[::rx, ::ry]
         elif da.ndim == 3:
-            da = da[::rx, ::ry, ::rz]
+            if rx == 1 and ry == 1 and rz == 1:
+                pass
+            else:
+                da = da[::rx, ::ry, ::rz]
         else:
             raise ValueError
 
