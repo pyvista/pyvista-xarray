@@ -1,4 +1,4 @@
-xarray
+xarray<2022.9.0,>2022.3.0
 pyvista
 pooch
 dask

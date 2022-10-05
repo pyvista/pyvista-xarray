@@ -68,9 +68,27 @@ class PyVistaXarraySource(BaseSource):
         elif time is not None:
             raise TypeError
 
+    def __str__(self):
+        return f"""
+data_array: {self._data_array}
+resolution: {self._resolution}
+x: {self._x}
+y: {self._y}
+z: {self._z}
+order: {self._order}
+component: {self._component}
+time: {self._time}
+time_index: {self._time_index}
+"""
+
     @property
     def data_array(self):
         return self._data_array
+
+    @data_array.setter
+    def data_array(self, data_array):
+        self._data_array = data_array
+        self.Modified()
 
     @property
     def resolution(self):
@@ -79,6 +97,60 @@ class PyVistaXarraySource(BaseSource):
     @resolution.setter
     def resolution(self, resolution: int):
         self._resolution = resolution
+        self.Modified()
+
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, x: str):
+        self._x = x
+        self.Modified()
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, y: str):
+        self._y = y
+        self.Modified()
+
+    @property
+    def z(self):
+        return self._z
+
+    @z.setter
+    def z(self, z: str):
+        self._z = z
+        self.Modified()
+
+    @property
+    def time(self):
+        return self._time
+
+    @time.setter
+    def time(self, time: str):
+        self._time = time
+        self.Modified()
+
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, order: str):
+        self._order = order
+        self.Modified()
+
+    @property
+    def component(self):
+        return self._component
+
+    @component.setter
+    def component(self, component: str):
+        self._component = component
         self.Modified()
 
     def resolution_to_sampling_rate(self, data_array):
