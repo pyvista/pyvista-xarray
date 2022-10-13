@@ -37,12 +37,12 @@ class BaseSource(VTKPythonAlgorithmBase):
 class PyVistaXarraySource(BaseSource):
     def __init__(
         self,
-        data_array: xr.DataArray,
+        data_array: Optional[xr.DataArray] = None,
         x: Optional[str] = None,
         y: Optional[str] = None,
         z: Optional[str] = None,
         time: Optional[str] = None,
-        order: Optional[str] = "C",
+        order: str = "C",
         component: Optional[str] = None,
         resolution: float = 1.0,
         **kwargs,
