@@ -145,8 +145,8 @@ mesh.warp_by_scalar().plot()
 
 ```py
 import pvxarray
-import rioxarray
 import pyvista as pv
+import xarray as xr
 
 ds = xr.tutorial.open_dataset("ROMS_example.nc", chunks={"ocean_time": 1})
 
