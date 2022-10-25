@@ -170,6 +170,10 @@ time_index: {self._time_index}
         self._time_index = time_index
         self.Modified()
 
+    @property
+    def data_range(self):
+        return self.data_array.min(), self.data_array.max()
+
     def RequestData(self, request, inInfo, outInfo):
         # Use open data_array handle to fetch data at
         # desired Level of Detail
