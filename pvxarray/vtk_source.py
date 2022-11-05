@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional
 
 import numpy as np
@@ -67,6 +68,8 @@ class PyVistaXarraySource(BaseSource):
             self._time = time
         elif time is not None:
             raise TypeError
+
+        self._z_index = None
 
     def __str__(self):
         return f"""
@@ -171,31 +174,51 @@ time_index: {self._time_index}
         self.Modified()
 
     @property
+    def z_index(self):
+        return self._z_index
+
+    @z_index.setter
+    def z_index(self, z_index: int):
+        self._z_index = z_index
+        self.Modified()
+
+    @property
     def data_range(self):
         return self.data_array.min(), self.data_array.max()
 
     def RequestData(self, request, inInfo, outInfo):
         # Use open data_array handle to fetch data at
         # desired Level of Detail
-        if self._time is not None:
-            da = self.data_array[{self._time: self.time_index}]
-        else:
-            da = self.data_array
+        try:
+            if self._time is not None:
+                da = self.data_array[{self._time: self.time_index}]
+            else:
+                da = self.data_array
 
-        rx, ry, rz = self.resolution_to_sampling_rate(da)
-        if da.ndim == 1:
-            da = da[::rx]
-        elif da.ndim == 2:
-            da = da[::rx, ::ry]
-        elif da.ndim == 3:
-            da = da[::rx, ::ry, ::rz]
-        else:
-            raise ValueError
+            if self._z and self._z_index is not None:
+                da = da[{self._z: self.z_index}]
 
-        mesh = da.pyvista.mesh(
-            x=self._x, y=self._y, z=self._z, order=self._order, component=self._component
-        )
+            rx, ry, rz = self.resolution_to_sampling_rate(da)
+            if da.ndim == 1:
+                da = da[::rx]
+            elif da.ndim == 2:
+                da = da[::rx, ::ry]
+            elif da.ndim == 3:
+                da = da[::rx, ::ry, ::rz]
+            else:
+                raise ValueError
 
-        pdo = self.GetOutputData(outInfo, 0)
-        pdo.ShallowCopy(mesh)
+            mesh = da.pyvista.mesh(
+                x=self._x,
+                y=self._y,
+                z=self._z if self._z_index is None else None,
+                order=self._order,
+                component=self._component,
+            )
+
+            pdo = self.GetOutputData(outInfo, 0)
+            pdo.ShallowCopy(mesh)
+        except Exception as e:
+            traceback.print_exc()
+            raise e
         return 1
