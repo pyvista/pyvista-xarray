@@ -12,26 +12,28 @@ state, ctrl = server.state, server.controller
 state.trame__title = "PyVista Xarray Level of Detail"
 
 # -----------------------------------------------------------------------------
-# ds = xr.tutorial.load_dataset("air_temperature")
-# da = ds.air
-# source = PyVistaXarraySource(da, x="lon", y="lat", time="time", resolution=1.0)
+ds = xr.tutorial.load_dataset("air_temperature")
+da = ds.air
+source = PyVistaXarraySource(da, x="lon", y="lat", time="time", resolution=1.0)
 
 # ds = xr.open_dataset("oisst-avhrr-v02r01.19810901.nc")
 # da = ds.err
 # source = PyVistaXarraySource(da, x="lon", y="lat", z="zlev", time="time", resolution=0.25)
+# source.z_index = 0
 
-ds = xr.tutorial.load_dataset("eraint_uvz")
-da = ds.u
-source = PyVistaXarraySource(
-    da, x="longitude", y="latitude", z="level", time="month", resolution=1.0
-)
-source.z_index = 0
+# ds = xr.tutorial.load_dataset("eraint_uvz")
+# da = ds.u
+# source = PyVistaXarraySource(
+#     da, x="longitude", y="latitude", z="level", time="month", resolution=1.0
+# )
+# source.z_index = 0
+
 
 # store = "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/pangeo-forge/CMIP6-PMIP-feedstock/CMIP6.PMIP.MIROC.MIROC-ES2L.past1000.r1i1p1f2.Amon.tas.gn.v20200318.zarr"
 # ds = xr.open_dataset(store, engine="zarr", chunks={})
 # da = ds.tas
 # source = PyVistaXarraySource(da, x="lon", y="lat", time="time", resolution=1.0)
-
+# source.z_index = 0
 # -----------------------------------------------------------------------------
 state.view_edge_visiblity = False
 
@@ -62,13 +64,13 @@ def update_z_index(z_index=0, **kwargs):
     ctrl.view_update()
 
 
-# Requires https://github.com/bjlittle/geovista/pull/127
+# Requires https://github.com/pyvista/pyvista/pull/3318 and https://github.com/bjlittle/geovista/pull/127
 actor = plotter.add_mesh(
     source,
     cmap="coolwarm",
     show_edges=state.view_edge_visiblity,
     # Requires https://github.com/pyvista/pyvista/pull/3556
-    nan_opacity=0.1,
+    nan_opacity=0,
 )
 basemap_actor = plotter.add_base_layer(texture=gv.blue_marble())
 resolution = "10m"
@@ -106,11 +108,12 @@ with SinglePageLayout(server) as layout:
 
     with layout.toolbar:
         vuetify.VSpacer()
+        max_z = len(da[source.z]) - 1 if source.z else 0
         vuetify.VSlider(
-            # v_show=len(da[source.z]) > 1,
+            v_show=max_z,
             v_model=("z_index", 0),
             min=0,
-            max=len(da[source.z]) - 1,
+            max=max_z,
             step=1,
             hide_details=True,
             label="Z Index",
@@ -159,7 +162,7 @@ with SinglePageLayout(server) as layout:
             fluid=True,
             classes="pa-0 fill-height",
         ):
-            view = trame_vtk.VtkLocalView(
+            view = trame_vtk.VtkRemoteView(
                 plotter.ren_win,
                 ref="view",
                 interactive_ratio=1,
