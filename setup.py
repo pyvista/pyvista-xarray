@@ -39,7 +39,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "xarray<2022.9.0,>2022.3.0",
-        "pyvista",  # TODO: set minimum version for shared array patch in https://github.com/pyvista/pyvista/pull/2697
+        "pyvista>=0.37",
         "scooby",
     ],
     entry_points={

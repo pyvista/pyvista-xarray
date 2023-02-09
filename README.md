@@ -64,19 +64,19 @@ pip install pyvista-xarray
 
 ### Upstream Work
 
-Many of the examples leverage brand new features in PyVista and GeoVista
-which may not yet be released when you're reading this. Here is a list
+Many of the examples leverage brand new features in PyVista `v0.38.1` and
+GeoVista which may not yet be released when you're reading this. Here is a list
 of pull requests needed for some of the examples:
 
-- PyVista algorithm support: https://github.com/pyvista/pyvista/pull/3318
 - GeoVista algorithm support: https://github.com/bjlittle/geovista/pull/127
-- PyVista NaN opacity: https://github.com/pyvista/pyvista/pull/3556
-- Better support with trame: https://github.com/pyvista/pyvista/pull/3385
 
 Work that was required and merged:
 
 - https://github.com/pyvista/pyvista/pull/2698
 - https://github.com/pyvista/pyvista/pull/2697
+- https://github.com/pyvista/pyvista/pull/3318
+- https://github.com/pyvista/pyvista/pull/3556
+- https://github.com/pyvista/pyvista/pull/3385
 
 ## 💭 Feedback
 Please share your thoughts and questions on the Discussions board. If you would
