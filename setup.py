@@ -33,10 +33,12 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=[
         "xarray>=2022.12.0",  # Broke between 2022.9-11
         "pyvista>=0.37",
