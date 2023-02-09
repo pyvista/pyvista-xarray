@@ -38,7 +38,7 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "xarray<2022.9.0,>2022.3.0",
+        "xarray>=2022.12.0",  # Broke between 2022.9-11
         "pyvista>=0.37",
         "scooby",
     ],
