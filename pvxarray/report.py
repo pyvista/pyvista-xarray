@@ -11,12 +11,17 @@ class Report(scooby.Report):
             "vtk",
             "numpy",
         ]
-
+        optional = [
+            "dask",
+            "rioxarray",
+            "rasterio",
+            "netcdf4",
+        ]
         scooby.Report.__init__(
             self,
             additional=additional,
             core=core,
-            optional=[],
+            optional=optional,
             ncol=ncol,
             text_width=text_width,
             sort=sort,
