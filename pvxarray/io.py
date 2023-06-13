@@ -8,6 +8,11 @@ from xarray.backends import BackendEntrypoint
 
 from pvxarray.errors import DataCopyWarning
 
+try:
+    from pyvista import ImageData
+except ImportError:  # pyvista<0.40
+    from pyvista import UniformGrid as ImageData
+
 
 def rectilinear_grid_to_dataset(mesh):
     dims = list(mesh.dimensions)
@@ -71,7 +76,7 @@ def pyvista_to_xarray(mesh):
     """Generate an xarray DataSet from a PyVista mesh object."""
     if isinstance(mesh, pv.RectilinearGrid):
         return rectilinear_grid_to_dataset(mesh)
-    elif isinstance(mesh, pv.UniformGrid):
+    elif isinstance(mesh, ImageData):
         return image_data_to_dataset(mesh)
     elif isinstance(mesh, pv.StructuredGrid):
         return structured_grid_to_dataset(mesh)

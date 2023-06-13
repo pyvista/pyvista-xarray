@@ -8,6 +8,11 @@ import xarray as xr
 
 from pvxarray import pyvista_to_xarray
 
+try:
+    from pyvista import ImageData
+except ImportError:  # pyvista<0.40
+    from pyvista import UniformGrid as ImageData
+
 
 @pytest.fixture
 def vtr_path():
@@ -40,7 +45,7 @@ def test_read_vtr(vtr_path):
 
 def test_read_vti(vti_path):
     ds = xr.open_dataset(vti_path, engine="pyvista")
-    truth = pv.UniformGrid(vti_path).cast_to_rectilinear_grid()
+    truth = ImageData(vti_path).cast_to_rectilinear_grid()
     assert np.allclose(ds["RTData"].values.ravel(), truth["RTData"].ravel())
     assert np.allclose(ds["x"].values, truth.x)
     assert np.allclose(ds["y"].values, truth.y)
@@ -78,7 +83,7 @@ def test_convert_vtr(vtr_path):
 
 
 def test_convert_vti(vti_path):
-    truth = pv.UniformGrid(vti_path)
+    truth = ImageData(vti_path)
     truth_r = truth.cast_to_rectilinear_grid()
     ds = pyvista_to_xarray(truth)
     mesh = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
