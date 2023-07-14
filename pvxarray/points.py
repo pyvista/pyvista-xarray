@@ -53,7 +53,9 @@ def mesh(
     values_dim = len(values)
     # Check dimensionality of data
     if values_dim != len(x):
-        raise ValueError(f"Dimensional mismatch between specified X, Y, Z coords and dimensionality of DataArray ({len(x)} vs {values_dim})")
+        raise ValueError(
+            f"Dimensional mismatch between specified X, Y, Z coords and dimensionality of DataArray ({len(x)} vs {values_dim})"
+        )
     self._mesh = pv.PolyData(np.c_[x, y, z])
     self._mesh[self._obj.name or "data"] = values
     return self._mesh

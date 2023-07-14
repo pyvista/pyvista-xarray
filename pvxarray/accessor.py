@@ -6,11 +6,10 @@ import xarray as xr
 from pvxarray import points, rectilinear, structured
 from pvxarray.vtk_source import PyVistaXarraySource
 
-
 methods = {
-    'points': points.mesh,
-    'rectilinear': rectilinear.mesh,
-    'structured': structured.mesh,
+    "points": points.mesh,
+    "rectilinear": rectilinear.mesh,
+    "structured": structured.mesh,
 }
 
 
@@ -93,7 +92,9 @@ class PyVistaAccessor:
         mesh_type: Optional[str] = None,
         **kwargs,
     ):
-        return self.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type).plot(**kwargs)
+        return self.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type).plot(
+            **kwargs
+        )
 
     def algorithm(
         self,
