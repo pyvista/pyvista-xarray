@@ -45,8 +45,8 @@ class PyVistaXarraySource(BaseSource):
         time: Optional[str] = None,
         order: str = "C",
         component: Optional[str] = None,
+        mesh_type: Optional[str] = None,
         resolution: float = 1.0,
-        **kwargs,
     ):
         BaseSource.__init__(
             self,
@@ -61,6 +61,7 @@ class PyVistaXarraySource(BaseSource):
         self._z = z
         self._order = order
         self._component = component
+        self._mesh_type = mesh_type
 
         self._time = None
         self._time_index = 0
@@ -174,6 +175,11 @@ time_index: {self._time_index}
         self.Modified()
 
     @property
+    def max_time_index(self):
+        if self._time:
+            return len(self.data_array[self._time]) - 1
+
+    @property
     def z_index(self):
         return self._z_index
 
@@ -199,14 +205,17 @@ time_index: {self._time_index}
                 da = da[{self._z: self.z_index}]
 
             rx, ry, rz = self.resolution_to_sampling_rate(da)
-            if da.ndim == 1:
+            if da.ndim <= 1:
                 da = da[::rx]
             elif da.ndim == 2:
                 da = da[::rx, ::ry]
             elif da.ndim == 3:
                 da = da[::rx, ::ry, ::rz]
-            else:
-                raise ValueError
+            # else:
+            #     raise ValueError
+
+            print(da.shape)
+            print(da.ndim)
 
             mesh = da.pyvista.mesh(
                 x=self._x,
@@ -214,6 +223,7 @@ time_index: {self._time_index}
                 z=self._z if self._z_index is None else None,
                 order=self._order,
                 component=self._component,
+                mesh_type=self._mesh_type,
             )
 
             pdo = self.GetOutputData(outInfo, 0)

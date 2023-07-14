@@ -3,7 +3,15 @@ from typing import Optional
 import pyvista as pv
 import xarray as xr
 
-from pvxarray import rectilinear, structured
+from pvxarray import points, rectilinear, structured
+from pvxarray.vtk_source import PyVistaXarraySource
+
+
+methods = {
+    'points': points.mesh,
+    'rectilinear': rectilinear.mesh,
+    'structured': structured.mesh,
+}
 
 
 class _LocIndexer:
@@ -50,6 +58,7 @@ class PyVistaAccessor:
         z: Optional[str] = None,
         order: Optional[str] = None,
         component: Optional[str] = None,
+        mesh_type: Optional[str] = None,
     ) -> pv.DataSet:
         ndim = 0
         if x is not None:
@@ -63,12 +72,15 @@ class PyVistaAccessor:
             _z = self._get_array(z)
             if _z.ndim > ndim:
                 ndim = _z.ndim
-        if ndim > 1:
-            # StructuredGrid
-            meth = structured.mesh
-        else:
-            # RectilinearGrid
-            meth = rectilinear.mesh
+        if mesh_type is None:  # Try to guess mesh type
+            if ndim > 1:
+                mesh_type = "structured"
+            else:
+                mesh_type = "rectilinear"
+        try:
+            meth = methods[mesh_type]
+        except KeyError:
+            raise KeyError
         return meth(self, x=x, y=y, z=z, order=order, component=component)
 
     def plot(
@@ -77,6 +89,31 @@ class PyVistaAccessor:
         y: Optional[str] = None,
         z: Optional[str] = None,
         order: str = "C",
+        component: Optional[str] = None,
+        mesh_type: Optional[str] = None,
         **kwargs,
     ):
-        return self.mesh(x=x, y=y, z=z, order=order).plot(**kwargs)
+        return self.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type).plot(**kwargs)
+
+    def algorithm(
+        self,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        z: Optional[str] = None,
+        time: Optional[str] = None,
+        order: str = "C",
+        component: Optional[str] = None,
+        mesh_type: Optional[str] = None,
+        resolution: float = 1.0,
+    ):
+        return PyVistaXarraySource(
+            data_array=self._obj,
+            x=x,
+            y=y,
+            z=z,
+            time=time,
+            order=order,
+            component=component,
+            mesh_type=mesh_type,
+            resolution=resolution,
+        )

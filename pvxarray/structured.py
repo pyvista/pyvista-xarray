@@ -17,8 +17,10 @@ def _coerce_shapes(*arrs):
         if arr.ndim > ndim:
             ndim = arr.ndim
             maxi = i
-    if ndim != len(arrs):
-        raise ValueError
+    # print(arrs)
+    # if ndim != len(arrs) - (*arrs,).count(None):
+    #     print(ndim, len(arrs))
+    #     raise ValueError
     if ndim < 1:
         raise ValueError
     shape = arrs[maxi].shape
@@ -49,6 +51,7 @@ def _points(
         if ndim == 1:
             raise ValueError("One dimensional structured grids should be rectilinear grids.")
         raise ValueError("You must specify at least two dimensions as X, Y, or Z.")
+    print("ndim", ndim)
     if x is not None:
         x = self._get_array(x)
     if y is not None:
@@ -66,6 +69,7 @@ def _points(
     if z is not None:
         points[:, 2] = z.ravel(order=order)
     shape = list(x.shape) + [1] * (3 - ndim)
+    print(shape)
     return points, shape
 
 
@@ -87,13 +91,14 @@ def mesh(
         )
     )
     points, shape = _points(self, x=x, y=y, z=z, order=order)
+    print("shape", shape)
     self._mesh.points = points
     self._mesh.dimensions = shape
     data = self.data
-    if tuple(data.shape) != tuple(shape):
-        raise ValueError(
-            "Coord and data shape mismatch. You may need to `transpose` the DataArray. "
-            f"Data shape {data.shape} vs. mesh shape {shape}"
-        )
+    # if tuple(data.shape) != tuple(shape):
+    #     raise ValueError(
+    #         "Coord and data shape mismatch. You may need to `transpose` the DataArray. "
+    #         f"Data shape {data.shape} vs. mesh shape {shape}"
+    #     )
     self._mesh[self._obj.name or "data"] = data.ravel(order=order)
     return self._mesh
