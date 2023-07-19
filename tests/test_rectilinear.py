@@ -118,7 +118,7 @@ def test_too_few_dimensions(simple):
     with pytest.raises(ValueError):
         simple["ds"].temperature.pyvista.mesh(x="x")
     with pytest.raises(ValueError):
-        mesh = simple["ds"].temperature.pyvista.mesh(x="x", y="y")
+        simple["ds"].temperature.pyvista.mesh(x="x", y="y")
 
 
 def test_too_many_dimensions(bahamas_rgb):
