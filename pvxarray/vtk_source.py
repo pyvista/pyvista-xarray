@@ -214,9 +214,6 @@ time_index: {self._time_index}
             # else:
             #     raise ValueError
 
-            print(da.shape)
-            print(da.ndim)
-
             mesh = da.pyvista.mesh(
                 x=self._x,
                 y=self._y,

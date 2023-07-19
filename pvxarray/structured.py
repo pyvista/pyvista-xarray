@@ -51,7 +51,6 @@ def _points(
         if ndim == 1:
             raise ValueError("One dimensional structured grids should be rectilinear grids.")
         raise ValueError("You must specify at least two dimensions as X, Y, or Z.")
-    print("ndim", ndim)
     if x is not None:
         x = self._get_array(x)
     if y is not None:
@@ -69,7 +68,6 @@ def _points(
     if z is not None:
         points[:, 2] = z.ravel(order=order)
     shape = list(x.shape) + [1] * (3 - ndim)
-    print(shape)
     return points, shape
 
 
@@ -91,7 +89,6 @@ def mesh(
         )
     )
     points, shape = _points(self, x=x, y=y, z=z, order=order)
-    print("shape", shape)
     self._mesh.points = points
     self._mesh.dimensions = shape
     data = self.data
