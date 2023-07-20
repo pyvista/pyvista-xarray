@@ -17,3 +17,8 @@ combine_as_imports = true
 filterwarnings = [
     "ignore::pvxarray.DataCopyWarning",
 ]
+
+
+[tool.codespell]
+skip = '*.pyc,*.txt,*.gif,*.png,*.jpg,*.ply,*.vtk,*.vti,*.vtu,*.vts,*.js,*.html,*.doctree,*.ttf,*.woff,*.woff2,*.eot,*.mp4,*.inv,*.pickle,*.ipynb,flycheck*,./.git/*,./.hypothesis/*,*.yml,doc/_build/*,./dist/*,*~,.hypothesis*,*.mypy_cache/*,*cover,'
+quiet-level = 3

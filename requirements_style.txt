@@ -1,8 +1,9 @@
+black[jupyter]
 codespell
 flake8
-black[jupyter]
-isort
-pydocstyle
 flake8-black
-flake8-isort
 flake8-bugbear
+flake8-isort
+isort
+pre-commit
+pydocstyle

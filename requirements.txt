@@ -1,8 +1,8 @@
-xarray>=2022.12.0
-pyvista
-pooch
 dask
 netcdf4
+pooch
 pytest
 pytest-cov
+pyvista
 rioxarray
+xarray>=2022.12.0
