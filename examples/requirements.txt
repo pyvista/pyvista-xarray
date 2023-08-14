@@ -1,9 +1,9 @@
-open-radar-data
-xradar
 geovista
-tqdm
-siphon
+open-radar-data
 protobuf==3.20.*
+siphon
+tqdm
 trame
 trame-vuetify
 trame-vtk
+xradar
