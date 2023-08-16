@@ -171,8 +171,6 @@ time_index: {self._time_index}
     @time_index.setter
     def time_index(self, time_index: int):
         self._time_index = time_index
-        if self.time and self.data_array:
-            self.data_array = self.data_array[{self.time: self.time_index}]
         self.Modified()
 
     @property
