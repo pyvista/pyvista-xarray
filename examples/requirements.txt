@@ -4,6 +4,6 @@ protobuf==3.20.*
 siphon
 tqdm
 trame
-trame-vuetify
 trame-vtk
+trame-vuetify
 xradar
