@@ -1,0 +1,9 @@
+geovista
+open-radar-data
+protobuf==3.20.*
+siphon
+tqdm
+trame
+trame-vtk
+trame-vuetify
+xradar

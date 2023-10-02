@@ -170,7 +170,6 @@ time_index: {self._time_index}
 
     @time_index.setter
     def time_index(self, time_index: int):
-        # TODO: hook into the VTK pipeling to get requested time
         self._time_index = time_index
         self.Modified()
 

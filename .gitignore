@@ -14,4 +14,3 @@ htmlcov/
 coverage.xml
 scripts/
 cache/
-*.nc
