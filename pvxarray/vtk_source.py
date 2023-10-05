@@ -73,6 +73,7 @@ class PyVistaXarraySource(BaseSource):
         self._z_index = None
         self._slicing = None
         self._sliced_data_array = None
+        self._persisted_data = None
         self._modified = False
         self._mesh = None
 
@@ -195,19 +196,25 @@ time_index: {self._time_index}
 
     @property
     def sliced_data_array(self):
+        if self._sliced_data_array is None or self._modified:
+            self._compute_sliced_data_array()
         return self._sliced_data_array
 
     @property
+    def persisted_data(self):
+        if self._persisted_data is None:
+            self._persisted_data = self.sliced_data_array.persist()
+        return self._persisted_data
+
+    @property
     def mesh(self):
+        if self._mesh is None:
+            self._compute_mesh()
         return self._mesh
 
     @property
-    def modified(self):
-        return self._modified
-
-    @property
     def data_range(self):
-        da = self.sliced_data_array
+        da = self.persisted_data
         return da.min(), da.max()
 
     def resolution_to_sampling_rate(self, data_array):
@@ -217,10 +224,11 @@ time_index: {self._time_index}
         rate = np.ceil(shape / n).astype(int)
         return np.pad(rate, (0, 3 - len(rate)), mode="constant")
 
-    def compute_sliced_data_array(self):
+    def _compute_sliced_data_array(self):
         if self.data_array is None:
             self._sliced_data_array = None
             self._modified = False
+            self._persisted_data = None
             return None
 
         if self._time is not None:
@@ -255,14 +263,14 @@ time_index: {self._time_index}
             elif da.ndim == 3:
                 da = da[::rx, ::ry, ::rz]
 
-        self._sliced_data_array = da.persist()
-        self._modified = True
+        self._sliced_data_array = da
+        self._persisted_data = None
+        self._mesh = None
+        self._modified = False
+        return self._sliced_data_array
 
-    def compute_mesh(self):
-        if self._sliced_data_array is None or self._modified:
-            self.compute_sliced_data_array()
-
-        self._mesh = self.sliced_data_array.pyvista.mesh(
+    def _compute_mesh(self):
+        self._mesh = self.persisted_data.pyvista.mesh(
             x=self._x,
             y=self._y,
             z=self._z if self._z_index is None else None,
@@ -280,10 +288,8 @@ time_index: {self._time_index}
         # Use open data_array handle to fetch data at
         # desired Level of Detail
         try:
-            if self._mesh is None or self._modified:
-                self.compute_mesh()
             pdo = self.GetOutputData(outInfo, 0)
-            pdo.ShallowCopy(self._mesh)
+            pdo.ShallowCopy(self.mesh)
         except Exception as e:
             traceback.print_exc()
             raise e
