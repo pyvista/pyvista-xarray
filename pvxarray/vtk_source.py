@@ -236,7 +236,7 @@ time_index: {self._time_index}
                     sliced_array = np.where(np.logical_and(c >= s[0], c <= s[1]))[0]
                     sliced_array = sliced_array[:: int(s[2])]
                     indexing[axis] = sliced_array
-            da = da[indexing]
+            da = da.isel(**indexing)
 
         elif self._resolution:
             rx, ry, rz = self.resolution_to_sampling_rate(da)
