@@ -73,8 +73,8 @@ class PyVistaXarraySource(BaseSource):
         self._z_index = None
         self._slicing = None
         self._sliced_data_array = None
-        self.modified = False
-        self.mesh = None
+        self._modified = False
+        self._mesh = None
 
     def __str__(self):
         return f"""
@@ -198,6 +198,14 @@ time_index: {self._time_index}
         return self._sliced_data_array
 
     @property
+    def mesh(self):
+        return self._mesh
+
+    @property
+    def modified(self):
+        return self._modified
+
+    @property
     def data_range(self):
         da = self.sliced_data_array
         return da.min(), da.max()
@@ -212,7 +220,7 @@ time_index: {self._time_index}
     def compute_sliced_data_array(self):
         if self.data_array is None:
             self._sliced_data_array = None
-            self.modified = False
+            self._modified = False
             return None
 
         if self._time is not None:
@@ -248,13 +256,13 @@ time_index: {self._time_index}
                 da = da[::rx, ::ry, ::rz]
 
         self._sliced_data_array = da.persist()
-        self.modified = True
+        self._modified = True
 
     def compute_mesh(self):
-        if self._sliced_data_array is None or self.modified:
+        if self._sliced_data_array is None or self._modified:
             self.compute_sliced_data_array()
 
-        self.mesh = self.sliced_data_array.pyvista.mesh(
+        self._mesh = self.sliced_data_array.pyvista.mesh(
             x=self._x,
             y=self._y,
             z=self._z if self._z_index is None else None,
@@ -262,20 +270,20 @@ time_index: {self._time_index}
             component=self._component,
             mesh_type=self._mesh_type,
         )
-        return self.mesh
+        return self._mesh
 
     def Modified(self, **kwargs):
-        self.modified = True
+        self._modified = True
         super().Modified(**kwargs)
 
     def RequestData(self, request, inInfo, outInfo):
         # Use open data_array handle to fetch data at
         # desired Level of Detail
         try:
-            if self.mesh is None or self.modified:
+            if self._mesh is None or self._modified:
                 self.compute_mesh()
             pdo = self.GetOutputData(outInfo, 0)
-            pdo.ShallowCopy(self.mesh)
+            pdo.ShallowCopy(self._mesh)
         except Exception as e:
             traceback.print_exc()
             raise e
