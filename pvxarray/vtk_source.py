@@ -74,7 +74,6 @@ class PyVistaXarraySource(BaseSource):
         self._slicing = None
         self._sliced_data_array = None
         self._persisted_data = None
-        self._modified = False
         self._mesh = None
 
     def __str__(self):
@@ -196,7 +195,7 @@ time_index: {self._time_index}
 
     @property
     def sliced_data_array(self):
-        if self._sliced_data_array is None or self._modified:
+        if self._sliced_data_array is None:
             self._compute_sliced_data_array()
         return self._sliced_data_array
 
@@ -227,8 +226,6 @@ time_index: {self._time_index}
     def _compute_sliced_data_array(self):
         if self.data_array is None:
             self._sliced_data_array = None
-            self._modified = False
-            self._persisted_data = None
             return None
 
         if self._time is not None:
@@ -264,9 +261,6 @@ time_index: {self._time_index}
                 da = da[::rx, ::ry, ::rz]
 
         self._sliced_data_array = da
-        self._persisted_data = None
-        self._mesh = None
-        self._modified = False
         return self._sliced_data_array
 
     def _compute_mesh(self):
@@ -281,7 +275,9 @@ time_index: {self._time_index}
         return self._mesh
 
     def Modified(self, **kwargs):
-        self._modified = True
+        self._sliced_data_array = None
+        self._persisted_data = None
+        self._mesh = None
         super().Modified(**kwargs)
 
     def RequestData(self, request, inInfo, outInfo):
