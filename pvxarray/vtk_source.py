@@ -272,7 +272,7 @@ time_index: {self._time_index}
         # Use open data_array handle to fetch data at
         # desired Level of Detail
         try:
-            if self.mesh is None:
+            if self.mesh is None or self.modified:
                 self.compute_mesh()
             pdo = self.GetOutputData(outInfo, 0)
             pdo.ShallowCopy(self.mesh)
