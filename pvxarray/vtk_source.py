@@ -1,5 +1,5 @@
 import traceback
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 import pyvista as pv
