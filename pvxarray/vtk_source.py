@@ -1,5 +1,5 @@
 import traceback
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 import pyvista as pv
@@ -46,7 +46,7 @@ class PyVistaXarraySource(BaseSource):
         order: str = "C",
         component: Optional[str] = None,
         mesh_type: Optional[str] = None,
-        resolution: float = 1.0,
+        resolution: Optional[float] = None,
     ):
         BaseSource.__init__(
             self,
@@ -71,6 +71,10 @@ class PyVistaXarraySource(BaseSource):
             raise TypeError
 
         self._z_index = None
+        self._slicing = None
+        self._sliced_data_array = None
+        self._persisted_data = None
+        self._mesh = None
 
     def __str__(self):
         return f"""
@@ -157,13 +161,6 @@ time_index: {self._time_index}
         self._component = component
         self.Modified()
 
-    def resolution_to_sampling_rate(self, data_array):
-        """Convert percentage to sampling rate."""
-        shape = np.array(data_array.shape)
-        n = np.floor(shape * self._resolution)
-        rate = np.ceil(shape / n).astype(int)
-        return np.pad(rate, (0, 3 - len(rate)), mode="constant")
-
     @property
     def time_index(self):
         return self._time_index
@@ -188,21 +185,73 @@ time_index: {self._time_index}
         self.Modified()
 
     @property
+    def slicing(self):
+        return self._slicing
+
+    @slicing.setter
+    def slicing(self, slicing: Optional[List[int]]):
+        self._slicing = slicing
+        self.Modified()
+
+    @property
+    def sliced_data_array(self):
+        if self._sliced_data_array is None:
+            self._compute_sliced_data_array()
+        return self._sliced_data_array
+
+    @property
+    def persisted_data(self):
+        if self._persisted_data is None:
+            self._persisted_data = self.sliced_data_array.persist()
+        return self._persisted_data
+
+    @property
+    def mesh(self):
+        if self._mesh is None:
+            self._compute_mesh()
+        return self._mesh
+
+    @property
     def data_range(self):
-        return self.data_array.min(), self.data_array.max()
+        da = self.persisted_data
+        return da.min(), da.max()
 
-    def RequestData(self, request, inInfo, outInfo):
-        # Use open data_array handle to fetch data at
-        # desired Level of Detail
-        try:
-            if self._time is not None:
-                da = self.data_array[{self._time: self.time_index}]
-            else:
-                da = self.data_array
+    def resolution_to_sampling_rate(self, data_array):
+        """Convert percentage to sampling rate."""
+        shape = np.array(data_array.shape)
+        n = np.floor(shape * self._resolution)
+        rate = np.ceil(shape / n).astype(int)
+        return np.pad(rate, (0, 3 - len(rate)), mode="constant")
 
-            if self._z and self._z_index is not None:
-                da = da[{self._z: self.z_index}]
+    def _compute_sliced_data_array(self):
+        if self.data_array is None:
+            self._sliced_data_array = None
+            return None
 
+        if self._time is not None:
+            da = self.data_array[{self._time: self.time_index}]
+        else:
+            da = self.data_array
+
+        if self._z and self._z_index is not None:
+            da = da[{self._z: self.z_index}]
+
+        if self._slicing:
+            indexing = {}
+            for axis in [
+                self.x,
+                self.y,
+                self.z,
+            ]:
+                if axis in self._slicing:
+                    s = self._slicing[axis]
+                    c = da.coords[axis]
+                    sliced_array = np.where(np.logical_and(c >= s[0], c <= s[1]))[0]
+                    sliced_array = sliced_array[:: int(s[2])]
+                    indexing[axis] = sliced_array
+            da = da.isel(**indexing)
+
+        elif self._resolution:
             rx, ry, rz = self.resolution_to_sampling_rate(da)
             if da.ndim <= 1:
                 da = da[::rx]
@@ -210,20 +259,33 @@ time_index: {self._time_index}
                 da = da[::rx, ::ry]
             elif da.ndim == 3:
                 da = da[::rx, ::ry, ::rz]
-            # else:
-            #     raise ValueError
 
-            mesh = da.pyvista.mesh(
-                x=self._x,
-                y=self._y,
-                z=self._z if self._z_index is None else None,
-                order=self._order,
-                component=self._component,
-                mesh_type=self._mesh_type,
-            )
+        self._sliced_data_array = da
+        return self._sliced_data_array
 
+    def _compute_mesh(self):
+        self._mesh = self.persisted_data.pyvista.mesh(
+            x=self._x,
+            y=self._y,
+            z=self._z if self._z_index is None else None,
+            order=self._order,
+            component=self._component,
+            mesh_type=self._mesh_type,
+        )
+        return self._mesh
+
+    def Modified(self, **kwargs):
+        self._sliced_data_array = None
+        self._persisted_data = None
+        self._mesh = None
+        super().Modified(**kwargs)
+
+    def RequestData(self, request, inInfo, outInfo):
+        # Use open data_array handle to fetch data at
+        # desired Level of Detail
+        try:
             pdo = self.GetOutputData(outInfo, 0)
-            pdo.ShallowCopy(mesh)
+            pdo.ShallowCopy(self.mesh)
         except Exception as e:
             traceback.print_exc()
             raise e
