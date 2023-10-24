@@ -1,5 +1,5 @@
 import traceback
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import pyvista as pv
@@ -189,7 +189,7 @@ time_index: {self._time_index}
         return self._slicing
 
     @slicing.setter
-    def slicing(self, slicing: int):
+    def slicing(self, slicing: Optional[List[int]]):
         self._slicing = slicing
         self.Modified()
 
@@ -243,7 +243,7 @@ time_index: {self._time_index}
                 self.y,
                 self.z,
             ]:
-                if axis in self.slicing:
+                if axis in self._slicing:
                     s = self._slicing[axis]
                     c = da.coords[axis]
                     sliced_array = np.where(np.logical_and(c >= s[0], c <= s[1]))[0]
