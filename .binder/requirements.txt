@@ -9,3 +9,4 @@ trame-vtk
 trame-vuetify
 trame-jupyter-extension
 xradar
+zarr  # for sea_temps example
