@@ -92,14 +92,12 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         filename_or_obj,
         *,
         drop_variables=None,
-        attrs=None,
         force_ext=None,
         file_format=None,
         progress_bar=False,
     ):
         mesh = pv.read(
             filename_or_obj,
-            attrs=attrs,
             force_ext=force_ext,
             file_format=file_format,
             progress_bar=progress_bar,
