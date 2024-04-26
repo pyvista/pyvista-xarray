@@ -1,5 +1,6 @@
 from typing import Optional
 
+import numpy as np
 import pyvista as pv
 import xarray as xr
 
@@ -40,7 +41,10 @@ class PyVistaAccessor:
 
     def _get_array(self, key):
         try:
-            return self._obj[key].values
+            values = self._obj[key].values
+            if str(values.dtype) == 'object':
+                values = np.array(range(len(values)))
+            return values
         except KeyError:
             raise KeyError(
                 f"Key {key} not present in DataArray. Choices are: {list(self._obj.coords.keys())}"
