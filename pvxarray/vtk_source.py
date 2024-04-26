@@ -238,17 +238,9 @@ time_index: {self._time_index}
 
         if self._slicing:
             indexing = {}
-            for axis in [
-                self.x,
-                self.y,
-                self.z,
-            ]:
+            for axis in [self.x, self.y, self.z]:
                 if axis in self._slicing:
-                    s = self._slicing[axis]
-                    c = da.coords[axis]
-                    sliced_array = np.where(np.logical_and(c >= s[0], c <= s[1]))[0]
-                    sliced_array = sliced_array[:: int(s[2])]
-                    indexing[axis] = sliced_array
+                    indexing[axis] = slice(*[int(v) for v in self._slicing[axis]])
             da = da.isel(**indexing)
 
         elif self._resolution:
