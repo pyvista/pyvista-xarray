@@ -263,10 +263,7 @@ time_index: {self._time_index}
             order=self._order,
             component=self._component,
             mesh_type=self._mesh_type,
-            scales = {
-                k: v[2]
-                for k, v in self._slicing.items()
-            }
+            scales={k: v[2] for k, v in self._slicing.items()},
         )
         return self._mesh
 
