@@ -42,7 +42,7 @@ class PyVistaAccessor:
     def _get_array(self, key, scale=1):
         try:
             values = self._obj[key].values
-            if str(values.dtype) == "object":
+            if "float" not in str(values.dtype) and "int" not in str(values.dtype):
                 # non-numeric coordinate, assign array of scaled indices
                 values = np.array(range(len(values))) * scale
             return values

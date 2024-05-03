@@ -228,22 +228,21 @@ time_index: {self._time_index}
             self._sliced_data_array = None
             return None
 
+        indexing = {}
+        if self._slicing is not None:
+            indexing = {
+                k: slice(*v) for k, v in self._slicing.items() if k in [self.x, self.y, self.z]
+            }
+
         if self._time is not None:
-            da = self.data_array[{self._time: self.time_index}]
-        else:
-            da = self.data_array
+            indexing.update(**{self._time: self.time_index})
 
-        if self._z and self._z_index is not None:
-            da = da[{self._z: self.z_index}]
+        if self.z and self.z_index is not None:
+            indexing.update(**{self.z: self.z_index})
 
-        if self._slicing:
-            indexing = {}
-            for axis in [self.x, self.y, self.z]:
-                if axis in self._slicing:
-                    indexing[axis] = slice(*[int(v) for v in self._slicing[axis]])
-            da = da.isel(**indexing)
+        da = self.data_array.isel(indexing)
 
-        elif self._resolution:
+        if self._slicing is None and self._resolution is not None:
             rx, ry, rz = self.resolution_to_sampling_rate(da)
             if da.ndim <= 1:
                 da = da[::rx]
