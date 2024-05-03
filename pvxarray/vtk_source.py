@@ -228,30 +228,21 @@ time_index: {self._time_index}
             self._sliced_data_array = None
             return None
 
+        indexing = {}
+        if self._slicing is not None:
+            indexing = {
+                k: slice(*v) for k, v in self._slicing.items() if k in [self.x, self.y, self.z]
+            }
+
         if self._time is not None:
-            da = self.data_array[{self._time: self.time_index}]
-        else:
-            da = self.data_array
+            indexing.update(**{self._time: self.time_index})
 
-        if self._z and self._z_index is not None:
-            da = da[{self._z: self.z_index}]
+        if self.z and self.z_index is not None:
+            indexing.update(**{self.z: self.z_index})
 
-        if self._slicing:
-            indexing = {}
-            for axis in [
-                self.x,
-                self.y,
-                self.z,
-            ]:
-                if axis in self._slicing:
-                    s = self._slicing[axis]
-                    c = da.coords[axis]
-                    sliced_array = np.where(np.logical_and(c >= s[0], c <= s[1]))[0]
-                    sliced_array = sliced_array[:: int(s[2])]
-                    indexing[axis] = sliced_array
-            da = da.isel(**indexing)
+        da = self.data_array.isel(indexing)
 
-        elif self._resolution:
+        if self._slicing is None and self._resolution is not None:
             rx, ry, rz = self.resolution_to_sampling_rate(da)
             if da.ndim <= 1:
                 da = da[::rx]
@@ -271,6 +262,7 @@ time_index: {self._time_index}
             order=self._order,
             component=self._component,
             mesh_type=self._mesh_type,
+            scales={k: v[2] for k, v in self._slicing.items()} if self._slicing else {},
         )
         return self._mesh
 

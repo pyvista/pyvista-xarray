@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 import warnings
 
 import pyvista as pv
@@ -13,6 +13,7 @@ def mesh(
     z: Optional[str] = None,
     order: Optional[str] = "C",
     component: Optional[str] = None,
+    scales: Optional[Dict] = None,
 ):
     if order is None:
         order = "C"
@@ -22,11 +23,11 @@ def mesh(
         raise ValueError("You must specify at least one dimension as X, Y, or Z.")
     # Construct the mesh
     if x is not None:
-        self._mesh.x = self._get_array(x)
+        self._mesh.x = self._get_array(x, scale=(scales and scales.get(x)) or 1)
     if y is not None:
-        self._mesh.y = self._get_array(y)
+        self._mesh.y = self._get_array(y, scale=(scales and scales.get(y)) or 1)
     if z is not None:
-        self._mesh.z = self._get_array(z)
+        self._mesh.z = self._get_array(z, scale=(scales and scales.get(z)) or 1)
     # Handle data values
     values = self.data
     values_dim = values.ndim

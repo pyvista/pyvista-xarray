@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Dict, Optional
 
+import numpy as np
 import pyvista as pv
 import xarray as xr
 
@@ -38,9 +39,13 @@ class PyVistaAccessor:
         """Attribute for location based indexing like pandas."""
         return _LocIndexer(self)
 
-    def _get_array(self, key):
+    def _get_array(self, key, scale=1):
         try:
-            return self._obj[key].values
+            values = self._obj[key].values
+            if "float" not in str(values.dtype) and "int" not in str(values.dtype):
+                # non-numeric coordinate, assign array of scaled indices
+                values = np.array(range(len(values))) * scale
+            return values
         except KeyError:
             raise KeyError(
                 f"Key {key} not present in DataArray. Choices are: {list(self._obj.coords.keys())}"
@@ -58,6 +63,7 @@ class PyVistaAccessor:
         order: Optional[str] = None,
         component: Optional[str] = None,
         mesh_type: Optional[str] = None,
+        scales: Optional[Dict] = None,
     ) -> pv.DataSet:
         ndim = 0
         if x is not None:
@@ -80,7 +86,7 @@ class PyVistaAccessor:
             meth = methods[mesh_type]
         except KeyError:
             raise KeyError
-        return meth(self, x=x, y=y, z=z, order=order, component=component)
+        return meth(self, x=x, y=y, z=z, order=order, component=component, scales=scales)
 
     def plot(
         self,

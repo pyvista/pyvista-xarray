@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 import warnings
 
 import numpy as np
@@ -41,6 +41,7 @@ def _points(
     y: Optional[str] = None,
     z: Optional[str] = None,
     order: Optional[str] = "F",
+    scales: Optional[Dict] = None,
 ):
     """Generate structured points as new array."""
     if order is None:
@@ -52,11 +53,11 @@ def _points(
             raise ValueError("One dimensional structured grids should be rectilinear grids.")
         raise ValueError("You must specify at least two dimensions as X, Y, or Z.")
     if x is not None:
-        x = self._get_array(x)
+        x = self._get_array(x, scale=(scales and scales.get(x)) or 1)
     if y is not None:
-        y = self._get_array(y)
+        y = self._get_array(y, scale=(scales and scales.get(y)) or 1)
     if z is not None:
-        z = self._get_array(z)
+        z = self._get_array(z, scale=(scales and scales.get(z)) or 1)
     arrs = _coerce_shapes(x, y, z)
     x, y, z = arrs
     arr = [a for a in arrs if a is not None][0]
@@ -78,6 +79,7 @@ def mesh(
     z: Optional[str] = None,
     order: str = "F",
     component: Optional[str] = None,  # TODO
+    scales: Optional[Dict] = None,
 ):
     if order is None:
         order = "F"
@@ -88,7 +90,7 @@ def mesh(
             "StructuredGrid accessor duplicates data - VTK/PyVista data not shared with xarray."
         )
     )
-    points, shape = _points(self, x=x, y=y, z=z, order=order)
+    points, shape = _points(self, x=x, y=y, z=z, order=order, scales=scales)
     self._mesh.points = points
     self._mesh.dimensions = shape
     data = self.data
