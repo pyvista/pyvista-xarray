@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import numpy as np
 import pyvista as pv
-from vtk.util.vtkAlgorithm import VTKPythonAlgorithmBase
+from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 import xarray as xr
 
 
