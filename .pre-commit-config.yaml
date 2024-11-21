@@ -78,3 +78,10 @@ repos:
   - id: requirements-txt-fixer
   - id: trailing-whitespace
     exclude: ^(|pyvista/examples/.*\.ply|pyvista/examples/.*\.vtk)
+
+- repo: https://github.com/ComPWA/taplo-pre-commit
+  rev: v0.9.3
+  hooks:
+    - id: taplo-format
+      # See options: https://taplo.tamasfe.dev/configuration/formatter-options.html
+      args: [--option, "reorder_arrays=true", --option, "reorder_keys=true"]
