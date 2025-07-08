@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 import warnings
 
+import numpy as np
 import pyvista as pv
 
 from pvxarray.errors import DataCopyWarning
@@ -14,20 +15,47 @@ def mesh(
     order: Optional[str] = "C",
     component: Optional[str] = None,
     scales: Optional[Dict] = None,
-):
+) -> pv.RectilinearGrid | pv.ImageData:
     if order is None:
         order = "C"
-    self._mesh = pv.RectilinearGrid()
+
     ndim = 3 - (x, y, z).count(None)
     if ndim < 1:
         raise ValueError("You must specify at least one dimension as X, Y, or Z.")
     # Construct the mesh
     if x is not None:
-        self._mesh.x = self._get_array(x, scale=(scales and scales.get(x)) or 1)
+        xx = self._get_array(x, scale=(scales and scales.get(x)) or 1)
+    else:
+        xx = np.array([0.0])
     if y is not None:
-        self._mesh.y = self._get_array(y, scale=(scales and scales.get(y)) or 1)
+        yy = self._get_array(y, scale=(scales and scales.get(y)) or 1)
+    else:
+        yy = np.array([0.0])
     if z is not None:
-        self._mesh.z = self._get_array(z, scale=(scales and scales.get(z)) or 1)
+        zz = self._get_array(z, scale=(scales and scales.get(z)) or 1)
+    else:
+        zz = np.array([0.0])
+
+    dx = np.diff(xx)
+    dy = np.diff(yy)
+    dz = np.diff(zz)
+
+    ddx = dx[0] if len(dx) and dx[0] > 0 else 1.0
+    ddy = dy[0] if len(dy) and dy[0] > 0 else 1.0
+    ddz = dz[0] if len(dz) and dz[0] > 0 else 1.0
+
+    if np.allclose(dx, ddx) and np.allclose(dy, ddy) and np.allclose(dz, ddz):
+        self._mesh = pv.ImageData(
+            origin=(xx[0], yy[0], zz[0]),
+            spacing=(ddx, ddy, ddz),
+            dimensions=(len(xx), len(yy), len(zz)),
+        )
+    else:
+        self._mesh = pv.RectilinearGrid()
+        self._mesh.x = xx
+        self._mesh.y = yy
+        self._mesh.z = zz
+
     # Handle data values
     values = self.data
     values_dim = values.ndim

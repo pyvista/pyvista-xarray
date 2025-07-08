@@ -34,7 +34,8 @@ def image_data_to_dataset(mesh):
     def gen_coords(i):
         coords = (
             np.cumsum(np.insert(np.full(mesh.dimensions[i] - 1, mesh.spacing[i]), 0, 0))
-            + mesh.origin[i]  # noqa: W503
+            + mesh.origin[i]
+            + mesh.offset[i]  # noqa: W503
         )
         return coords
 
