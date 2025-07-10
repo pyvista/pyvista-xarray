@@ -1,7 +1,6 @@
 import os
 import warnings
 
-import numpy as np
 import pyvista as pv
 import xarray as xr
 from xarray.backends import BackendEntrypoint
@@ -30,14 +29,8 @@ def rectilinear_grid_to_dataset(mesh):
     )
 
 
-def image_data_to_dataset(mesh):
-    def gen_coords(i):
-        coords = (
-            np.cumsum(np.insert(np.full(mesh.dimensions[i] - 1, mesh.spacing[i]), 0, 0))
-            + mesh.origin[i]
-            + mesh.offset[i]  # noqa: W503
-        )
-        return coords
+def image_data_to_dataset(mesh: pv.ImageData):
+    coords = mesh._generate_rectilinear_coords()
 
     dims = list(mesh.dimensions)
     dims = dims[-1:] + dims[:-1]
@@ -47,9 +40,9 @@ def image_data_to_dataset(mesh):
             for name, arr in mesh.point_data.items()
         },
         coords={
-            "x": (["x"], gen_coords(0)),
-            "y": (["y"], gen_coords(1)),
-            "z": (["z"], gen_coords(2)),
+            "x": (["x"], coords[0]),
+            "y": (["y"], coords[1]),
+            "z": (["z"], coords[2]),
         },
     )
 
