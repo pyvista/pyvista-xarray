@@ -1,4 +1,5 @@
 import os
+from typing import Union
 import warnings
 
 import pyvista as pv
@@ -66,7 +67,7 @@ def structured_grid_to_dataset(mesh: pv.StructuredGrid) -> xr.Dataset:
     )
 
 
-def pyvista_to_xarray(mesh: pv.RectilinearGrid | ImageData | pv.StructuredGrid) -> xr.Dataset:
+def pyvista_to_xarray(mesh: Union[pv.RectilinearGrid, ImageData, pv.StructuredGrid]) -> xr.Dataset:
     """Generate an xarray DataSet from a PyVista mesh object."""
     if isinstance(mesh, pv.RectilinearGrid):
         return rectilinear_grid_to_dataset(mesh)
