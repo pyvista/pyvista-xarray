@@ -36,11 +36,13 @@ jobs:
       #   run: |
       #     make doctest
       - name: Stash coverage
+        if: matrix.python-version == '3.12'
         uses: actions/upload-artifact@v4
         with:
           name: coverage.xml
           path: coverage.xml
       - uses: codecov/codecov-action@v5
+        if: matrix.python-version == '3.12'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
