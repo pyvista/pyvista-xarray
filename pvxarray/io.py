@@ -13,7 +13,7 @@ except ImportError:  # pyvista<0.40
     from pyvista import UniformGrid as ImageData
 
 
-def rectilinear_grid_to_dataset(mesh):
+def rectilinear_grid_to_dataset(mesh: pv.RectilinearGrid) -> xr.Dataset:
     dims = list(mesh.dimensions)
     dims = dims[-1:] + dims[:-1]
     return xr.Dataset(
@@ -29,7 +29,7 @@ def rectilinear_grid_to_dataset(mesh):
     )
 
 
-def image_data_to_dataset(mesh: pv.ImageData):
+def image_data_to_dataset(mesh: ImageData) -> xr.Dataset:
     coords = mesh._generate_rectilinear_coords()
 
     dims = list(mesh.dimensions)
@@ -47,7 +47,7 @@ def image_data_to_dataset(mesh: pv.ImageData):
     )
 
 
-def structured_grid_to_dataset(mesh):
+def structured_grid_to_dataset(mesh: pv.StructuredGrid) -> xr.Dataset:
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid dataset engine duplicates data - VTK/PyVista data not shared with xarray."
@@ -66,7 +66,7 @@ def structured_grid_to_dataset(mesh):
     )
 
 
-def pyvista_to_xarray(mesh):
+def pyvista_to_xarray(mesh: pv.RectilinearGrid | ImageData | pv.StructuredGrid) -> xr.Dataset:
     """Generate an xarray DataSet from a PyVista mesh object."""
     if isinstance(mesh, pv.RectilinearGrid):
         return rectilinear_grid_to_dataset(mesh)
@@ -89,7 +89,7 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         force_ext=None,
         file_format=None,
         progress_bar=False,
-    ):
+    ) -> xr.Dataset:
         mesh = pv.read(
             filename_or_obj,
             force_ext=force_ext,
