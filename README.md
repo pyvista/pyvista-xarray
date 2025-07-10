@@ -4,8 +4,7 @@
 [![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
 [![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
-xarray DataArray accessors for PyVista to visualize datasets in 3D
-
+xarray DataArray accessors to visualize datasets in 3D with [PyVista](https://docs.pyvista.org)
 
 ## 🚀 Usage
 
@@ -81,22 +80,6 @@ If you prefer pip, then you can install from PyPI: https://pypi.org/project/pyvi
 pip install pyvista-xarray
 ```
 
-### Upstream Work
-
-Many of the examples leverage brand new features in PyVista `v0.38.1` and
-GeoVista which may not yet be released when you're reading this. Here is a list
-of pull requests needed for some of the examples:
-
-- GeoVista algorithm support: https://github.com/bjlittle/geovista/pull/127
-
-Work that was required and merged:
-
-- https://github.com/pyvista/pyvista/pull/2698
-- https://github.com/pyvista/pyvista/pull/2697
-- https://github.com/pyvista/pyvista/pull/3318
-- https://github.com/pyvista/pyvista/pull/3556
-- https://github.com/pyvista/pyvista/pull/3385
-
 ## 💭 Feedback
 Please share your thoughts and questions on the Discussions board. If you would
 like to report any bugs or make feature requests, please open an issue.
@@ -107,7 +90,6 @@ If filing a bug report, please share a scooby Report:
 import pvxarray
 print(pvxarray.Report())
 ```
-
 
 ## 🏏 Further Examples
 
@@ -141,7 +123,6 @@ ds = xr.Dataset(
 mesh = ds.temperature.pyvista.mesh(x="lon", y="lat", z="z")
 mesh.plot()
 ```
-
 
 ## Raster with rioxarray
 
@@ -178,7 +159,6 @@ mesh.warp_by_scalar().plot()
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/topo.png' -->
 ![topo](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/topo.png)
-
 
 ## StructuredGrid
 
