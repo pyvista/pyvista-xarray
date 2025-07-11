@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 import warnings
 
 import numpy as np
@@ -15,7 +15,7 @@ def mesh(
     order: Optional[str] = "C",
     component: Optional[str] = None,
     scales: Optional[Dict] = None,
-) -> pv.RectilinearGrid | pv.ImageData:
+) -> Union[pv.RectilinearGrid, pv.ImageData]:
     if order is None:
         order = "C"
 
