@@ -45,12 +45,14 @@ def test_read_vtr(vtr_path):
 
 def test_read_vti(vti_path):
     ds = xr.open_dataset(vti_path, engine="pyvista")
-    truth = ImageData(vti_path).cast_to_rectilinear_grid()
+    truth = ImageData(vti_path)
+    truth_r = truth.cast_to_rectilinear_grid()
     assert np.allclose(ds["RTData"].values.ravel(), truth["RTData"].ravel())
-    assert np.allclose(ds["x"].values, truth.x)
-    assert np.allclose(ds["y"].values, truth.y)
-    assert np.allclose(ds["z"].values, truth.z)
-    assert ds["RTData"].pyvista.mesh(x="x", y="y", z="z") == truth
+    assert np.allclose(ds["x"].values, truth_r.x)
+    assert np.allclose(ds["y"].values, truth_r.y)
+    assert np.allclose(ds["z"].values, truth_r.z)
+    im = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
+    assert im.cast_to_rectilinear_grid() == truth_r
 
 
 def test_read_vts(vts_path):
@@ -89,10 +91,8 @@ def test_convert_vti(vti_path):
     mesh = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
     assert np.array_equal(ds["RTData"].values.ravel(), truth["RTData"].ravel())
     assert np.may_share_memory(ds["RTData"].values.ravel(), truth["RTData"].ravel())
-    assert np.array_equal(mesh.x, truth_r.x)
-    assert np.array_equal(mesh.y, truth_r.y)
-    assert np.array_equal(mesh.z, truth_r.z)
-    assert mesh == truth_r
+    # assert np.array_equal(mesh.points, truth_r.points)
+    assert mesh.cast_to_rectilinear_grid() == truth_r
 
 
 def test_convert_vts(vts_path):

@@ -23,8 +23,8 @@ setup(
     description="xarray DataArray accessors for PyVista",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Kitware, Inc.",
-    author_email="kitware@kitware.com",
+    author="PyVista Developers",
+    author_email="info@pyvista.org",
     url="https://github.com/pyvista/pyvista-xarray",
     packages=["pvxarray"],
     include_package_data=True,
@@ -41,7 +41,7 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "xarray>=2022.12.0",  # Broke between 2022.9-11
-        "pyvista>=0.37",
+        "pyvista>=0.45",
         "scooby",
     ],
     entry_points={

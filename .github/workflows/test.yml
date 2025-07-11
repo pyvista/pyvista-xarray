@@ -14,11 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.9, "3.10", "3.11"]
+        python-version: [3.9, "3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -36,11 +36,13 @@ jobs:
       #   run: |
       #     make doctest
       - name: Stash coverage
-        uses: actions/upload-artifact@v3
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
         with:
           name: coverage.xml
           path: coverage.xml
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
+        if: matrix.python-version == '3.12'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
