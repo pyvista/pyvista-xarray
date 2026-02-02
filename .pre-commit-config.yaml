@@ -5,25 +5,25 @@ ci:
     autoupdate_schedule: monthly
 
 repos:
-- repo: https://github.com/psf/black
-  rev: 24.10.0
+- repo: https://github.com/psf/black-pre-commit-mirror
+  rev: 26.1.0
   hooks:
   - id: black
 
 - repo: https://github.com/keewis/blackdoc
-  rev: v0.3.9
+  rev: v0.4.6
   hooks:
   - id: blackdoc
     files: '\.py$'
     exclude: pyvista/plotting/charts.py
 
 - repo: https://github.com/pycqa/isort
-  rev: 5.13.2
+  rev: 7.0.0
   hooks:
   - id: isort
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 7.1.1
+  rev: 7.3.0
   hooks:
   - id: flake8
     additional_dependencies: [
@@ -33,7 +33,7 @@ repos:
     ]
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.3.0
+  rev: v2.4.1
   hooks:
   - id: codespell
     args: [
@@ -53,7 +53,7 @@ repos:
     exclude: ^pyvista/ext/
 
 - repo: https://github.com/DanielNoord/pydocstringformatter
-  rev: v0.7.3
+  rev: v0.7.5
   hooks:
     - id: pydocstringformatter
       args: [
@@ -63,13 +63,13 @@ repos:
       ]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.19.1
+  rev: v3.21.2
   hooks:
   - id: pyupgrade
     args: [--py38-plus, --keep-runtime-typing]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-merge-conflict
   - id: debug-statements
