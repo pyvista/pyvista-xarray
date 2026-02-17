@@ -1,5 +1,3 @@
-from typing import Dict, Optional
-
 import numpy as np
 import pyvista as pv
 import xarray as xr
@@ -46,10 +44,10 @@ class PyVistaAccessor:
                 # non-numeric coordinate, assign array of scaled indices
                 values = np.array(range(len(values))) * scale
             return values
-        except KeyError:
+        except KeyError as e:
             raise KeyError(
                 f"Key {key} not present in DataArray. Choices are: {list(self._obj.coords.keys())}"
-            )
+            ) from e
 
     @property
     def data(self):
@@ -57,13 +55,13 @@ class PyVistaAccessor:
 
     def mesh(
         self,
-        x: Optional[str] = None,
-        y: Optional[str] = None,
-        z: Optional[str] = None,
-        order: Optional[str] = None,
-        component: Optional[str] = None,
-        mesh_type: Optional[str] = None,
-        scales: Optional[Dict] = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
+        order: str | None = None,
+        component: str | None = None,
+        mesh_type: str | None = None,
+        scales: dict | None = None,
     ) -> pv.DataSet:
         ndim = 0
         if x is not None:
@@ -78,24 +76,21 @@ class PyVistaAccessor:
             if _z.ndim > ndim:
                 ndim = _z.ndim
         if mesh_type is None:  # Try to guess mesh type
-            if ndim > 1:
-                mesh_type = "structured"
-            else:
-                mesh_type = "rectilinear"
+            mesh_type = "structured" if ndim > 1 else "rectilinear"
         try:
             meth = methods[mesh_type]
-        except KeyError:
-            raise KeyError
+        except KeyError as e:
+            raise KeyError from e
         return meth(self, x=x, y=y, z=z, order=order, component=component, scales=scales)
 
     def plot(
         self,
-        x: Optional[str] = None,
-        y: Optional[str] = None,
-        z: Optional[str] = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
         order: str = "C",
-        component: Optional[str] = None,
-        mesh_type: Optional[str] = None,
+        component: str | None = None,
+        mesh_type: str | None = None,
         **kwargs,
     ):
         return self.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type).plot(
@@ -104,13 +99,13 @@ class PyVistaAccessor:
 
     def algorithm(
         self,
-        x: Optional[str] = None,
-        y: Optional[str] = None,
-        z: Optional[str] = None,
-        time: Optional[str] = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
+        time: str | None = None,
         order: str = "C",
-        component: Optional[str] = None,
-        mesh_type: Optional[str] = None,
+        component: str | None = None,
+        mesh_type: str | None = None,
         resolution: float = 1.0,
     ):
         return PyVistaXarraySource(

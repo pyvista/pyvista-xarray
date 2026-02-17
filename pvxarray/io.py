@@ -1,4 +1,5 @@
 import os
+from typing import ClassVar
 import warnings
 
 import numpy as np
@@ -34,7 +35,7 @@ def image_data_to_dataset(mesh):
     def gen_coords(i):
         coords = (
             np.cumsum(np.insert(np.full(mesh.dimensions[i] - 1, mesh.spacing[i]), 0, 0))
-            + mesh.origin[i]  # noqa: W503
+            + mesh.origin[i]
         )
         return coords
 
@@ -57,7 +58,8 @@ def structured_grid_to_dataset(mesh):
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid dataset engine duplicates data - VTK/PyVista data not shared with xarray."
-        )
+        ),
+        stacklevel=2,
     )
     return xr.Dataset(
         {
@@ -104,7 +106,7 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         )
         return pyvista_to_xarray(mesh)
 
-    open_dataset_parameters = [
+    open_dataset_parameters: ClassVar[list[str]] = [
         "filename_or_obj",
         "attrs",
         "force_ext",

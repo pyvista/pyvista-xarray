@@ -1,4 +1,3 @@
-from typing import Dict, Optional
 import warnings
 
 import numpy as np
@@ -37,11 +36,11 @@ def _coerce_shapes(*arrs):
 
 def _points(
     self,
-    x: Optional[str] = None,
-    y: Optional[str] = None,
-    z: Optional[str] = None,
-    order: Optional[str] = "F",
-    scales: Optional[Dict] = None,
+    x: str | None = None,
+    y: str | None = None,
+    z: str | None = None,
+    order: str | None = "F",
+    scales: dict | None = None,
 ):
     """Generate structured points as new array."""
     if order is None:
@@ -60,7 +59,7 @@ def _points(
         z = self._get_array(z, scale=(scales and scales.get(z)) or 1)
     arrs = _coerce_shapes(x, y, z)
     x, y, z = arrs
-    arr = [a for a in arrs if a is not None][0]
+    arr = next(a for a in arrs if a is not None)
     points = np.zeros((arr.size, 3), dtype=arr.dtype)
     if x is not None:
         points[:, 0] = x.ravel(order=order)
@@ -74,12 +73,12 @@ def _points(
 
 def mesh(
     self,
-    x: Optional[str] = None,
-    y: Optional[str] = None,
-    z: Optional[str] = None,
+    x: str | None = None,
+    y: str | None = None,
+    z: str | None = None,
     order: str = "F",
-    component: Optional[str] = None,  # TODO
-    scales: Optional[Dict] = None,
+    component: str | None = None,  # TODO
+    scales: dict | None = None,
 ):
     if order is None:
         order = "F"
@@ -88,7 +87,8 @@ def mesh(
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid accessor duplicates data - VTK/PyVista data not shared with xarray."
-        )
+        ),
+        stacklevel=2,
     )
     points, shape = _points(self, x=x, y=y, z=z, order=order, scales=scales)
     self._mesh.points = points

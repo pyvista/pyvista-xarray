@@ -1,4 +1,3 @@
-from typing import Dict, Optional
 import warnings
 
 import pyvista as pv
@@ -8,12 +7,12 @@ from pvxarray.errors import DataCopyWarning
 
 def mesh(
     self,
-    x: Optional[str] = None,
-    y: Optional[str] = None,
-    z: Optional[str] = None,
-    order: Optional[str] = "C",
-    component: Optional[str] = None,
-    scales: Optional[Dict] = None,
+    x: str | None = None,
+    y: str | None = None,
+    z: str | None = None,
+    order: str | None = "C",
+    component: str | None = None,
+    scales: dict | None = None,
 ):
     if order is None:
         order = "C"
@@ -41,7 +40,8 @@ def mesh(
         warnings.warn(
             DataCopyWarning(
                 "Made a copy of the multicomponent array - VTK/PyVista data not shared with xarray."
-            )
+            ),
+            stacklevel=2,
         )
         ndim += 1
     else:

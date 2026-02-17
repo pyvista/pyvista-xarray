@@ -62,7 +62,7 @@ def test_shared_data(simple):
 
 def test_roms(roms):
     ds = roms
-    da = ds.salt[dict(ocean_time=0)]
+    da = ds.salt[{"ocean_time": 0}]
 
     # Make array ordering consistent
     da = da.transpose("s_rho", "xi_rho", "eta_rho", transpose_coords=False)

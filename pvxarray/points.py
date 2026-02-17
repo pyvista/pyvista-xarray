@@ -1,4 +1,3 @@
-from typing import Optional
 import warnings
 
 import numpy as np
@@ -9,11 +8,11 @@ from pvxarray.errors import DataCopyWarning
 
 def mesh(
     self,
-    x: Optional[str] = None,
-    y: Optional[str] = None,
-    z: Optional[str] = None,
-    order: Optional[str] = "C",
-    component: Optional[str] = None,
+    x: str | None = None,
+    y: str | None = None,
+    z: str | None = None,
+    order: str | None = "C",
+    component: str | None = None,
 ):
     if order is None:
         order = "C"
@@ -31,25 +30,17 @@ def mesh(
         warnings.warn(
             DataCopyWarning(
                 "Made a copy of the multicomponent array - VTK/PyVista data not shared with xarray."
-            )
+            ),
+            stacklevel=2,
         )
         ndim += 1
     else:
         values = values.ravel(order=order)
 
     # Construct the mesh
-    if x is not None:
-        x = self._get_array(x)
-    else:
-        x = np.zeros(values.shape)
-    if y is not None:
-        y = self._get_array(y)
-    else:
-        y = np.zeros(values.shape)
-    if z is not None:
-        z = self._get_array(z)
-    else:
-        z = np.zeros(values.shape)
+    x = self._get_array(x) if x is not None else np.zeros(values.shape)
+    y = self._get_array(y) if y is not None else np.zeros(values.shape)
+    z = self._get_array(z) if z is not None else np.zeros(values.shape)
     values_dim = len(values)
     # Check dimensionality of data
     if values_dim != len(x):
