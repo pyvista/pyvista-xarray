@@ -1,3 +1,0 @@
-graft pvxarray
-graft tests
-global-exclude *.pyc
