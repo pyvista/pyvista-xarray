@@ -32,12 +32,10 @@ def rectilinear_grid_to_dataset(mesh):
 
 
 def image_data_to_dataset(mesh):
+    extent = mesh.GetExtent()
+
     def gen_coords(i):
-        coords = (
-            np.cumsum(np.insert(np.full(mesh.dimensions[i] - 1, mesh.spacing[i]), 0, 0))
-            + mesh.origin[i]
-        )
-        return coords
+        return np.arange(extent[2 * i], extent[2 * i + 1] + 1) * mesh.spacing[i] + mesh.origin[i]
 
     dims = list(mesh.dimensions)
     dims = dims[-1:] + dims[:-1]
