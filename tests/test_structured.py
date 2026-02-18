@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 import xarray as xr
 
+import pvxarray  # noqa: F401
+
 
 @pytest.fixture
 def simple():
@@ -72,3 +74,55 @@ def test_roms(roms):
 
     assert np.allclose(mesh["salt"], da.values.ravel(order="F"), equal_nan=True)
     assert np.allclose(mesh.z, da.z_rho, equal_nan=True)
+
+
+def test_component_not_supported(simple):
+    with pytest.raises(ValueError, match="not currently supported"):
+        simple["ds"].temperature.pyvista.mesh(x="x", y="y", z="z", component="zi")
+
+
+def test_1d_structured_error():
+    x = np.arange(10, dtype=float)
+    temp = np.random.randn(10)
+    da = xr.DataArray(
+        temp,
+        dims=["xi"],
+        coords={"x": (["xi"], x)},
+        name="temp",
+    )
+    with pytest.raises(ValueError, match="rectilinear"):
+        da.pyvista.mesh(x="x", mesh_type="structured")
+
+
+def test_structured_scales():
+    x_vals = np.arange(3, dtype=float)
+    x, t = np.meshgrid(x_vals, np.arange(3))
+    temp = np.random.randn(*x.shape)
+    da = xr.DataArray(
+        temp,
+        dims=["ti", "xi"],
+        coords={
+            "x": (["ti", "xi"], x.astype(float)),
+            "time": (["ti", "xi"], t.astype(float)),
+        },
+        name="temp",
+    )
+    # Scales only affect non-numeric coords, but for structured grids
+    # with 2D numeric coords, they pass through _get_array unchanged.
+    # Just verify scales kwarg is accepted without error.
+    mesh = da.pyvista.mesh(x="x", y="time", mesh_type="structured", scales={"x": 2.0})
+    assert mesh.n_points == 9
+
+
+def test_structured_no_data_name():
+    x = np.arange(-2, 2, 1.0)
+    y = np.arange(-2, 2, 1.0)
+    x, y = np.meshgrid(x, y)
+    temp = np.random.randn(*x.shape)
+    da = xr.DataArray(
+        temp,
+        dims=["xi", "yi"],
+        coords={"x": (["xi", "yi"], x), "y": (["xi", "yi"], y)},
+    )
+    mesh = da.pyvista.mesh(x="x", y="y", mesh_type="structured")
+    assert "data" in mesh.point_data

@@ -3,14 +3,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import pyvista as pv
+from pyvista import ImageData
 import xarray as xr
 
-from pvxarray import pyvista_to_xarray
-
-try:
-    from pyvista import ImageData
-except ImportError:  # pyvista<0.40
-    from pyvista import UniformGrid as ImageData
+from pvxarray import DataCopyWarning, pyvista_to_xarray
+from pvxarray.io import PyVistaBackendEntrypoint
 
 
 @pytest.fixture
@@ -105,3 +102,38 @@ def test_convert_vts(vts_path):
     assert np.array_equal(mesh.y, truth.y)
     assert np.array_equal(mesh.z, truth.z)
     assert mesh == truth
+
+
+def test_pyvista_to_xarray_unsupported_type():
+    mesh = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]]))
+    with pytest.raises(TypeError, match="unable to generate"):
+        pyvista_to_xarray(mesh)
+
+
+def test_guess_can_open():
+    entry = PyVistaBackendEntrypoint()
+    assert entry.guess_can_open("test.vtr") is True
+    assert entry.guess_can_open("test.vts") is True
+    assert entry.guess_can_open("test.vti") is True
+    assert entry.guess_can_open("test.vtk") is True
+    assert entry.guess_can_open("test.nc") is False
+    assert entry.guess_can_open("test.csv") is False
+    assert entry.guess_can_open(123) is False
+
+
+def test_image_data_to_dataset_nonzero_origin():
+    grid = ImageData(dimensions=(3, 4, 2), spacing=(0.5, 1.0, 2.0), origin=(1.0, 2.0, 3.0))
+    grid.point_data["values"] = np.arange(grid.n_points, dtype=float)
+    ds = pyvista_to_xarray(grid)
+    assert np.isclose(ds["x"].values[0], 1.0)
+    assert np.isclose(ds["y"].values[0], 2.0)
+    assert np.isclose(ds["z"].values[0], 3.0)
+    assert np.isclose(ds["x"].values[-1], 1.0 + 2 * 0.5)
+    assert np.isclose(ds["y"].values[-1], 2.0 + 3 * 1.0)
+    assert np.isclose(ds["z"].values[-1], 3.0 + 1 * 2.0)
+
+
+def test_structured_grid_to_dataset_warning(vts_path):
+    truth = pv.StructuredGrid(vts_path)
+    with pytest.warns(DataCopyWarning):
+        pyvista_to_xarray(truth)

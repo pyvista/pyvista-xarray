@@ -16,10 +16,6 @@ def _coerce_shapes(*arrs):
         if arr.ndim > ndim:
             ndim = arr.ndim
             maxi = i
-    # print(arrs)
-    # if ndim != len(arrs) - (*arrs,).count(None):
-    #     print(ndim, len(arrs))
-    #     raise ValueError
     if ndim < 1:
         raise ValueError
     shape = arrs[maxi].shape
@@ -94,10 +90,5 @@ def mesh(
     self._mesh.points = points
     self._mesh.dimensions = shape
     data = self.data
-    # if tuple(data.shape) != tuple(shape):
-    #     raise ValueError(
-    #         "Coord and data shape mismatch. You may need to `transpose` the DataArray. "
-    #         f"Data shape {data.shape} vs. mesh shape {shape}"
-    #     )
     self._mesh[self._obj.name or "data"] = data.ravel(order=order)
     return self._mesh

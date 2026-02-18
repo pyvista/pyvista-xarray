@@ -13,6 +13,7 @@ def mesh(
     z: str | None = None,
     order: str | None = "C",
     component: str | None = None,
+    scales: dict | None = None,
 ):
     if order is None:
         order = "C"
@@ -21,8 +22,6 @@ def mesh(
         raise ValueError("You must specify at least one dimension as X, Y, or Z.")
     values = self.data
     if component is not None:
-        # if ndim < values.ndim and values.ndim == ndim + 1:
-        # Assuming additional component array
         dims = set(self._obj.dims)
         dims.discard(component)
         values = self._obj.transpose(*dims, component, transpose_coords=True).values
@@ -38,9 +37,22 @@ def mesh(
         values = values.ravel(order=order)
 
     # Construct the mesh
-    x = self._get_array(x) if x is not None else np.zeros(values.shape)
-    y = self._get_array(y) if y is not None else np.zeros(values.shape)
-    z = self._get_array(z) if z is not None else np.zeros(values.shape)
+    n_points = len(values)
+    x = (
+        self._get_array(x, scale=(scales and scales.get(x)) or 1)
+        if x is not None
+        else np.zeros(n_points)
+    )
+    y = (
+        self._get_array(y, scale=(scales and scales.get(y)) or 1)
+        if y is not None
+        else np.zeros(n_points)
+    )
+    z = (
+        self._get_array(z, scale=(scales and scales.get(z)) or 1)
+        if z is not None
+        else np.zeros(n_points)
+    )
     values_dim = len(values)
     # Check dimensionality of data
     if values_dim != len(x):

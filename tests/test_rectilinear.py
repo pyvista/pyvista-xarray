@@ -191,3 +191,36 @@ def test_2D_rectilinear_yz():
     assert np.may_share_memory(mesh.z, da["z"].values)
     assert np.array_equal(mesh["temperature"], temp.ravel())
     assert np.may_share_memory(mesh["temperature"], temp)
+
+
+def test_scales():
+    import pandas as pd
+
+    times = pd.date_range("2000-01-01", periods=3)
+    lat = np.array([42.25, 42.21, 42.10])
+    temp = 15 + 8 * np.random.randn(3, 3)
+    ds = xr.Dataset(
+        {
+            "temperature": (["time", "y"], temp),
+        },
+        coords={
+            "time": times,
+            "lat": (["y"], lat),
+        },
+    )
+    mesh = ds.temperature.pyvista.mesh(x="time", y="lat", scales={"time": 10.0})
+    # Non-numeric "time" coord should be replaced with scaled indices
+    assert np.allclose(mesh.x, np.array([0, 10, 20], dtype=float))
+    assert np.array_equal(mesh.y, lat)
+
+
+def test_no_data_name():
+    lon = np.array([-99.83, -99.32])
+    temp = np.array([15.0, 18.0])
+    da = xr.DataArray(
+        temp,
+        dims=["x"],
+        coords={"lon": ("x", lon)},
+    )
+    mesh = da.pyvista.mesh(x="lon")
+    assert "data" in mesh.point_data
