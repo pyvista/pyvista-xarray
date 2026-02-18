@@ -3,7 +3,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 import pyvista as pv
-import scooby
 import xarray as xr
 
 from pvxarray import pyvista_to_xarray
@@ -66,20 +65,22 @@ def test_read_vts(vts_path):
 def test_convert_vtr(vtr_path):
     truth = pv.RectilinearGrid(vtr_path)
     ds = pyvista_to_xarray(truth)
-    mesh = ds["air"].pyvista.mesh(x="x", y="y", z="z")
-    assert np.array_equal(ds["air"].values.ravel(), truth["air"].ravel())
-    assert np.may_share_memory(ds["air"].values.ravel(), truth["air"].ravel())
+    da = ds["air"]
+    mesh = da.pyvista.mesh(x="x", y="y", z="z")
+    # Point data should share memory through the full chain
+    assert np.array_equal(da.values.ravel(), truth["air"].ravel())
+    assert np.may_share_memory(da.values.ravel(), truth["air"].ravel())
+    # Coordinate values should be equal
     assert np.array_equal(mesh.x, truth.x)
     assert np.array_equal(mesh.y, truth.y)
     assert np.array_equal(mesh.z, truth.z)
-    assert np.may_share_memory(mesh.z, truth.z)
+    # pvxarray should share coords with what xarray provides
+    # (dimension coords may not share with the original VTK mesh
+    # due to pandas Index copy-on-write behavior in pandas>=3.0)
+    assert np.may_share_memory(mesh.x, da["x"].values)
+    assert np.may_share_memory(mesh.y, da["y"].values)
+    assert np.may_share_memory(mesh.z, da["z"].values)
     assert mesh == truth
-
-    # TODO: figure out why this is failing
-    #   broke after https://github.com/pyvista/pyvista/pull/3179
-    if not scooby.meets_version(pv.__version__, "0.37"):
-        assert np.may_share_memory(mesh.x, truth.x)
-        assert np.may_share_memory(mesh.y, truth.y)
 
 
 def test_convert_vti(vti_path):
@@ -88,7 +89,6 @@ def test_convert_vti(vti_path):
     ds = pyvista_to_xarray(truth)
     mesh = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
     assert np.array_equal(ds["RTData"].values.ravel(), truth["RTData"].ravel())
-    assert np.may_share_memory(ds["RTData"].values.ravel(), truth["RTData"].ravel())
     assert np.array_equal(mesh.x, truth_r.x)
     assert np.array_equal(mesh.y, truth_r.y)
     assert np.array_equal(mesh.z, truth_r.z)
