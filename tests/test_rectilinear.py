@@ -43,22 +43,28 @@ def test_simple(simple):
 
 
 def test_shared_coords(simple):
-    mesh = simple["ds"].temperature.pyvista.mesh(x="lon", y="lat", z="z")
+    da = simple["ds"].temperature
+    mesh = da.pyvista.mesh(x="lon", y="lat", z="z")
 
+    # Verify mesh coords share memory with what xarray provides
+    # (non-dimension coords share with the original numpy array,
+    # but dimension coords may not due to pandas Index behavior)
+    assert np.may_share_memory(mesh.x, da["lon"].values)
+    assert np.may_share_memory(mesh.y, da["lat"].values)
+    assert np.may_share_memory(mesh.z, da["z"].values)
+
+    # Verify mutation propagates through the shared memory chain
     mesh.x[0] = 0
-    assert simple["lon"][0] == 0
-    assert np.array_equal(mesh.x, simple["lon"])
-    assert np.may_share_memory(mesh.x, simple["lon"])
+    assert da["lon"].values[0] == 0
+    assert np.array_equal(mesh.x, da["lon"].values)
 
     mesh.y[0] = 0.5
-    assert simple["lat"][0] == 0.5
-    assert np.array_equal(mesh.y, simple["lat"])
-    assert np.may_share_memory(mesh.y, simple["lat"])
+    assert da["lat"].values[0] == 0.5
+    assert np.array_equal(mesh.y, da["lat"].values)
 
     mesh.z[0] = 1
-    assert simple["z"][0] == 1
-    assert np.array_equal(mesh.z, simple["z"])
-    assert np.may_share_memory(mesh.z, simple["z"])
+    assert da["z"].values[0] == 1
+    assert np.array_equal(mesh.z, da["z"].values)
 
 
 def test_shared_data(simple):
@@ -72,7 +78,7 @@ def test_shared_data(simple):
 
 def test_air_temperature():
     ds = xr.tutorial.load_dataset("air_temperature")
-    da = ds.air[dict(time=0)]
+    da = ds.air[{"time": 0}]
 
     mesh = da.pyvista.mesh(x="lon", y="lat")
     assert mesh
@@ -82,15 +88,12 @@ def test_air_temperature():
     assert np.array_equal(mesh["air"], da.values.ravel())
     assert np.may_share_memory(mesh["air"], da.values.ravel())
     assert np.array_equal(mesh.x, da.lon)
-    # TODO: why `may_share_memory` failing here?
-    # assert np.may_share_memory(mesh.x, da.lon)
     assert np.array_equal(mesh.y, da.lat)
-    # assert np.may_share_memory(mesh.y, da.lat)
 
 
 def test_rioxarray(bahamas_rgb):
     da = rioxarray.open_rasterio(bahamas_rgb)
-    band = da[dict(band=1)]
+    band = da[{"band": 1}]
     mesh = band.pyvista.mesh(x="x", y="y")
     assert np.array_equal(mesh["data"], band.values.ravel())
     assert np.may_share_memory(mesh["data"], band.values.ravel())
@@ -123,7 +126,7 @@ def test_too_few_dimensions(simple):
 
 def test_too_many_dimensions(bahamas_rgb):
     da = rioxarray.open_rasterio(bahamas_rgb)
-    band = da[dict(band=1)]
+    band = da[{"band": 1}]
     with pytest.raises(ValueError):
         band.pyvista.mesh(x="x", y="y", z="band")
 
@@ -179,11 +182,12 @@ def test_2D_rectilinear_yz():
             "z": (["z"], z),
         },
     )
-    mesh = ds.temperature.pyvista.mesh(y="lat", z="z")
+    da = ds.temperature
+    mesh = da.pyvista.mesh(y="lat", z="z")
     assert mesh.n_points == 4
     assert np.array_equal(mesh.y, lat)
-    assert np.may_share_memory(mesh.y, lat)
+    assert np.may_share_memory(mesh.y, da["lat"].values)
     assert np.array_equal(mesh.z, z)
-    assert np.may_share_memory(mesh.z, z)
+    assert np.may_share_memory(mesh.z, da["z"].values)
     assert np.array_equal(mesh["temperature"], temp.ravel())
     assert np.may_share_memory(mesh["temperature"], temp)

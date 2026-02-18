@@ -1,5 +1,4 @@
 import traceback
-from typing import List, Optional
 
 import numpy as np
 import pyvista as pv
@@ -38,15 +37,15 @@ class BaseSource(VTKPythonAlgorithmBase):
 class PyVistaXarraySource(BaseSource):
     def __init__(
         self,
-        data_array: Optional[xr.DataArray] = None,
-        x: Optional[str] = None,
-        y: Optional[str] = None,
-        z: Optional[str] = None,
-        time: Optional[str] = None,
+        data_array: xr.DataArray | None = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
+        time: str | None = None,
         order: str = "C",
-        component: Optional[str] = None,
-        mesh_type: Optional[str] = None,
-        resolution: Optional[float] = None,
+        component: str | None = None,
+        mesh_type: str | None = None,
+        resolution: float | None = None,
     ):
         BaseSource.__init__(
             self,
@@ -189,7 +188,7 @@ time_index: {self._time_index}
         return self._slicing
 
     @slicing.setter
-    def slicing(self, slicing: Optional[List[int]]):
+    def slicing(self, slicing: list[int] | None):
         self._slicing = slicing
         self.Modified()
 

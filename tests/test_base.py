@@ -27,13 +27,13 @@ def test_accessor_available():
 
 
 def test_indexing(sample):
-    ds = sample.pyvista[dict(t=0)]
+    ds = sample.pyvista[{"t": 0}]
     assert ds.t == 0.5
-    ds = sample.pyvista[dict(t=1)]
+    ds = sample.pyvista[{"t": 1}]
     assert ds.t == 1.5
-    ds = sample.pyvista.loc[dict(t=0.5)]
+    ds = sample.pyvista.loc[{"t": 0.5}]
     assert ds.t == 0.5
-    ds = sample.pyvista.loc[dict(t=1.5)]
+    ds = sample.pyvista.loc[{"t": 1.5}]
     assert ds.t == 1.5
 
 
@@ -43,10 +43,10 @@ def test_report():
 
 def test_bad_key(sample):
     with pytest.raises(KeyError):
-        sample[dict(t=0)].pyvista.mesh(x="foo")
+        sample[{"t": 0}].pyvista.mesh(x="foo")
     with pytest.raises(KeyError):
-        sample[dict(t=0)].pyvista.mesh(x="ux", y="hello")
-    mesh = sample[dict(t=0)].pyvista.mesh(x="ux", y="uy", z="uz")
+        sample[{"t": 0}].pyvista.mesh(x="ux", y="hello")
+    mesh = sample[{"t": 0}].pyvista.mesh(x="ux", y="uy", z="uz")
     assert mesh.n_points
 
 

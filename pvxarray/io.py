@@ -1,4 +1,5 @@
 import os
+from typing import ClassVar
 import warnings
 
 import numpy as np
@@ -31,12 +32,10 @@ def rectilinear_grid_to_dataset(mesh):
 
 
 def image_data_to_dataset(mesh):
+    extent = mesh.GetExtent()
+
     def gen_coords(i):
-        coords = (
-            np.cumsum(np.insert(np.full(mesh.dimensions[i] - 1, mesh.spacing[i]), 0, 0))
-            + mesh.origin[i]  # noqa: W503
-        )
-        return coords
+        return np.arange(extent[2 * i], extent[2 * i + 1] + 1) * mesh.spacing[i] + mesh.origin[i]
 
     dims = list(mesh.dimensions)
     dims = dims[-1:] + dims[:-1]
@@ -57,7 +56,8 @@ def structured_grid_to_dataset(mesh):
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid dataset engine duplicates data - VTK/PyVista data not shared with xarray."
-        )
+        ),
+        stacklevel=2,
     )
     return xr.Dataset(
         {
@@ -104,7 +104,7 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         )
         return pyvista_to_xarray(mesh)
 
-    open_dataset_parameters = [
+    open_dataset_parameters: ClassVar[list[str]] = [
         "filename_or_obj",
         "attrs",
         "force_ext",

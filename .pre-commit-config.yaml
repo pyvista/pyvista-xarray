@@ -5,35 +5,22 @@ ci:
     autoupdate_schedule: monthly
 
 repos:
-- repo: https://github.com/psf/black
-  rev: 24.10.0
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.11.2
   hooks:
-  - id: black
+  - id: ruff
+    args: [--fix]
+  - id: ruff-format
 
 - repo: https://github.com/keewis/blackdoc
-  rev: v0.3.9
+  rev: v0.4.6
   hooks:
   - id: blackdoc
     files: '\.py$'
     exclude: pyvista/plotting/charts.py
 
-- repo: https://github.com/pycqa/isort
-  rev: 5.13.2
-  hooks:
-  - id: isort
-
-- repo: https://github.com/PyCQA/flake8
-  rev: 7.1.1
-  hooks:
-  - id: flake8
-    additional_dependencies: [
-      "flake8-black==0.3.6",
-      "flake8-isort==6.0.0",
-      # "flake8-quotes==3.3.2",
-    ]
-
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.3.0
+  rev: v2.4.1
   hooks:
   - id: codespell
     args: [
@@ -53,7 +40,7 @@ repos:
     exclude: ^pyvista/ext/
 
 - repo: https://github.com/DanielNoord/pydocstringformatter
-  rev: v0.7.3
+  rev: v0.7.5
   hooks:
     - id: pydocstringformatter
       args: [
@@ -62,14 +49,8 @@ repos:
         "--no-capitalize-first-letter",
       ]
 
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.19.1
-  hooks:
-  - id: pyupgrade
-    args: [--py38-plus, --keep-runtime-typing]
-
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-merge-conflict
   - id: debug-statements
