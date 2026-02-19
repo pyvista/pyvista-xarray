@@ -104,7 +104,6 @@ def test_rioxarray(bahamas_rgb):
     assert np.may_share_memory(mesh.y, band.y.values)
 
 
-@pytest.mark.xfail(strict=False)
 def test_rioxarray_multicomponent(bahamas_rgb):
     da = rioxarray.open_rasterio(bahamas_rgb)
     with pytest.warns(DataCopyWarning):
@@ -115,7 +114,7 @@ def test_rioxarray_multicomponent(bahamas_rgb):
     assert np.may_share_memory(mesh.y, da.y.values)
     # Check multicomponent array
     values = da.values.swapaxes(0, 2).swapaxes(0, 1).reshape(-1, 3)
-    assert np.allclose(mesh["data"], values)  # TODO: this check is flaky which is very concerning
+    assert np.allclose(mesh["data"], values)
 
 
 def test_too_few_dimensions(simple):
