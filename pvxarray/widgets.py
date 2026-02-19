@@ -8,12 +8,33 @@ from pvxarray.vtk_source import PyVistaXarraySource
 
 
 def time_controls(
-    engine: PyVistaXarraySource, plotter: pv.BasePlotter, continuous_update=False, step=1
+    engine: PyVistaXarraySource,
+    plotter: pv.BasePlotter,
+    continuous_update=False,
+    step=1,
+    show_label=True,
 ):
-    """Create play/slider widgets to scrub through time steps."""
+    """Create play/slider widgets to scrub through time steps.
+
+    Parameters
+    ----------
+    engine : PyVistaXarraySource
+        The VTK source with a time dimension.
+    plotter : pv.BasePlotter
+        The PyVista plotter to re-render on time change.
+    continuous_update : bool, default False
+        Whether the slider triggers updates while dragging.
+    step : int, default 1
+        Step size for the play widget.
+    show_label : bool, default True
+        Display a text label with the current time value.
+    """
+    label = widgets.Label(value=engine.time_label or "") if show_label else None
 
     def update_time_index(time_index):
         engine.time_index = time_index
+        if label is not None:
+            label.value = engine.time_label or ""
         plotter.render()
 
     tmax = engine.max_time_index
@@ -37,7 +58,11 @@ def time_controls(
 
     slider = widgets.IntSlider(min=0, max=tmax, continuous_update=continuous_update)
     widgets.jslink((play, "value"), (slider, "value"))
-    return widgets.HBox([play, slider])
+
+    children = [play, slider]
+    if label is not None:
+        children.append(label)
+    return widgets.HBox(children)
 
 
 def show_ui(engine: PyVistaXarraySource, plotter: pv.BasePlotter, continuous_update=False, step=1):

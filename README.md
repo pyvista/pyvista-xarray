@@ -88,6 +88,13 @@ rendering:
 source = da.pyvista.algorithm(x="lon", y="lat", time="time", resolution=0.5)
 ```
 
+Algorithm sources also expose human-readable time labels from datetime
+coordinates:
+
+```py
+source.time_label  # e.g. '2013-01-01 00:00:00'
+```
+
 ### Dataset Accessor
 
 The `.pyvista` accessor also works on `Dataset` objects, letting you load
@@ -111,7 +118,80 @@ mesh = ds.pyvista.mesh(
     x="longitude",
     y="latitude",
 )
+
+# Or create a lazy algorithm source for large datasets
+source = ds.pyvista.algorithm(
+    arrays=["u", "v"],
+    x="longitude",
+    y="latitude",
+    z="level",
+    time="month",
+)
 ```
+
+### Computed Fields
+
+Derive new arrays on the fly with `vtkArrayCalculator` expressions. This is
+useful for computing quantities like wind speed from vector components without
+modifying the underlying dataset:
+
+```py
+import pvxarray
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("eraint_uvz")
+
+source = ds.pyvista.algorithm(
+    arrays=["u", "v"],
+    x="longitude",
+    y="latitude",
+    z="level",
+    time="month",
+)
+
+# Add a derived wind speed field
+source.computed = {
+    "_use_scalars": ["u", "v"],
+    "wind_speed": "sqrt(u*u + v*v)",
+}
+```
+
+Expressions follow `vtkArrayCalculator` syntax and can reference any array
+loaded onto the mesh.
+
+### Pipeline Extensibility
+
+Inject post-processing filters into the source's evaluation chain. Each
+element can be a VTK algorithm or a callable that takes and returns a PyVista
+mesh:
+
+```py
+# Apply a warp filter after mesh creation
+source.pipeline = [lambda mesh: mesh.warp_by_scalar(factor=0.001)]
+```
+
+Filters run in order after computed fields are evaluated and the result is
+passed downstream to the plotter.
+
+### State Serialization
+
+Save and restore source configurations as JSON for reproducible
+visualizations:
+
+```py
+# Save the current configuration
+config = source.to_json()
+
+# Later, recreate the source with the same settings
+restored = PyVistaXarraySource.from_json(
+    config,
+    data_array=ds["u"],
+    dataset=ds,
+)
+```
+
+The state captures coordinate mappings, time index, resolution, array
+selections, and computed field definitions.
 
 ### Reading VTK Files as xarray Datasets
 

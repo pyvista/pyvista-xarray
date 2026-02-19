@@ -450,3 +450,59 @@ class PyVistaDatasetAccessor:
             mesh[name] = values.ravel(order=_order)
 
         return mesh
+
+    def algorithm(
+        self,
+        arrays: list[str] | None = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
+        time: str | None = None,
+        order: str = "C",
+        component: str | None = None,
+        mesh_type: str | None = None,
+        resolution: float = 1.0,
+    ) -> PyVistaXarraySource:
+        """Create a VTK algorithm source with multi-array support.
+
+        Parameters
+        ----------
+        arrays : list[str], optional
+            Names of data variables to load onto the mesh. The first
+            variable defines mesh geometry.
+        x, y, z : str, optional
+            Coordinate names for spatial axes.
+        time : str, optional
+            Name of the time dimension.
+        order : str, default "C"
+            Array memory layout for flattening.
+        component : str, optional
+            Vector component dimension name.
+        mesh_type : str, optional
+            Force a specific mesh type.
+        resolution : float, default 1.0
+            Fraction of data points to include.
+
+        Returns
+        -------
+        PyVistaXarraySource
+        """
+        if arrays is None:
+            arrays = [name for name in self._obj.data_vars if not is_bounds_variable(name)]
+        if not arrays:
+            raise ValueError("No data variables to visualize.")
+
+        primary = arrays[0]
+        return PyVistaXarraySource(
+            data_array=self._obj[primary],
+            x=x,
+            y=y,
+            z=z,
+            time=time,
+            order=order,
+            component=component,
+            mesh_type=mesh_type,
+            resolution=resolution,
+            dataset=self._obj,
+            arrays=arrays[1:],
+        )
