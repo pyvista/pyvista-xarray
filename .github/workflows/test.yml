@@ -57,7 +57,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set up headless display
-        uses: pyvista/setup-headless-display-action@v2
+        uses: pyvista/setup-headless-display-action@v4
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
