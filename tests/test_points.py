@@ -4,6 +4,7 @@ import pyvista as pv
 import xarray as xr
 
 from pvxarray import DataCopyWarning
+from pvxarray.points import mesh as points_mesh
 
 
 @pytest.fixture
@@ -56,8 +57,6 @@ def test_points_mesh_no_coords():
 
 def test_points_mesh_no_coords_explicit():
     """When x/y/z are all None and passed explicitly, PolyData raises."""
-    from pvxarray.points import mesh as points_mesh
-
     da = xr.DataArray(np.array([1.0, 2.0, 3.0]), dims=["pts"], name="vals")
     with pytest.raises(ValueError, match="at least one dimension"):
         points_mesh(da.pyvista, x=None, y=None, z=None)
