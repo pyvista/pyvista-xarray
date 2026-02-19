@@ -9,8 +9,8 @@ xarray DataArray accessors for PyVista to visualize datasets in 3D
 ## Usage
 
 Import `pvxarray` to register the `.pyvista` accessor on xarray `DataArray`
-objects. This gives you access to methods for creating 3D meshes, plotting,
-and lazy evaluation of large datasets.
+and `Dataset` objects. This gives you access to methods for creating 3D meshes,
+plotting, and lazy evaluation of large datasets.
 
 Try on MyBinder: https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD
 
@@ -86,6 +86,31 @@ rendering:
 
 ```py
 source = da.pyvista.algorithm(x="lon", y="lat", time="time", resolution=0.5)
+```
+
+### Dataset Accessor
+
+The `.pyvista` accessor also works on `Dataset` objects, letting you load
+multiple data variables onto a single mesh. This is useful when a dataset
+contains several fields (e.g. wind components, temperature, pressure) that
+share the same grid:
+
+```py
+import pvxarray
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("eraint_uvz")
+
+# Discover which variables share the same dimensions
+ds.pyvista.available_arrays()
+# ['z', 'u', 'v']
+
+# Create a mesh with all three variables as point data
+mesh = ds.pyvista.mesh(
+    arrays=["u", "v", "z"],
+    x="longitude",
+    y="latitude",
+)
 ```
 
 ### Reading VTK Files as xarray Datasets

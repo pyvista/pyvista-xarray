@@ -67,3 +67,25 @@ def detect_axes(da: xr.DataArray) -> dict[str, str]:
             _try_add(axis, name)
 
     return axes
+
+
+_BOUNDS_SUFFIXES = ("_bnds", "_bounds", "_vertices")
+
+
+def is_bounds_variable(name: str) -> bool:
+    """Check if a variable name is a CF bounds/boundary variable.
+
+    CF conventions define boundary variables with suffixes like
+    ``_bnds``, ``_bounds``, or ``_vertices``.
+
+    Parameters
+    ----------
+    name : str
+        The variable name to check.
+
+    Returns
+    -------
+    bool
+        ``True`` if the name ends with a known bounds suffix.
+    """
+    return any(name.endswith(suffix) for suffix in _BOUNDS_SUFFIXES)

@@ -20,7 +20,7 @@ import pyvista as pv
 import xarray as xr
 
 from pvxarray import points, rectilinear, structured
-from pvxarray.cf import detect_axes
+from pvxarray.cf import detect_axes, is_bounds_variable
 from pvxarray.vtk_source import PyVistaXarraySource
 
 methods = {
@@ -323,3 +323,130 @@ class PyVistaAccessor:
             mesh_type=mesh_type,
             resolution=resolution,
         )
+
+
+@xr.register_dataset_accessor("pyvista")
+class PyVistaDatasetAccessor:
+    """PyVista accessor for :class:`xarray.Dataset`.
+
+    Adds a ``.pyvista`` namespace to Dataset objects with methods for
+    multi-variable mesh creation and CF axis detection.
+
+    Parameters
+    ----------
+    xarray_obj : xr.Dataset
+        The Dataset this accessor is attached to.
+
+    Notes
+    -----
+    Import ``pvxarray`` to register this accessor::
+
+        import pvxarray  # noqa: F401
+    """
+
+    def __init__(self, xarray_obj: xr.Dataset):
+        """Initialize the Dataset accessor."""
+        self._obj = xarray_obj
+
+    @property
+    def axes(self) -> dict[str, str]:
+        """Detected CF axis mapping from the first data variable.
+
+        Picks the first non-bounds data variable and runs CF axis
+        detection on it. Returns an empty dict if no data variables
+        exist.
+
+        Returns
+        -------
+        dict[str, str]
+            e.g. ``{"X": "lon", "Y": "lat", "T": "time"}``
+        """
+        for name in self._obj.data_vars:
+            if not is_bounds_variable(name):
+                return detect_axes(self._obj[name])
+        return {}
+
+    def available_arrays(self, reference: str | None = None) -> list[str]:
+        """Return data variables compatible with *reference*.
+
+        Returns variable names that share the same dimensions as
+        *reference*, excluding CF boundary variables.
+
+        Parameters
+        ----------
+        reference : str, optional
+            Name of the reference variable. If ``None``, returns all
+            non-bounds data variables.
+
+        Returns
+        -------
+        list[str]
+        """
+        if reference is None:
+            return [name for name in self._obj.data_vars if not is_bounds_variable(name)]
+        if reference not in self._obj:
+            raise KeyError(
+                f"{reference!r} not found in Dataset. "
+                f"Available variables: {list(self._obj.data_vars)}"
+            )
+        target_dims = set(self._obj[reference].dims)
+        return [
+            name
+            for name in self._obj.data_vars
+            if set(self._obj[name].dims) == target_dims and not is_bounds_variable(name)
+        ]
+
+    def mesh(
+        self,
+        arrays: list[str] | None = None,
+        x: str | None = None,
+        y: str | None = None,
+        z: str | None = None,
+        order: str | None = None,
+        component: str | None = None,
+        mesh_type: str | None = None,
+    ) -> pv.DataSet:
+        """Create a PyVista mesh with one or more data variables.
+
+        The first variable in *arrays* (or the first non-bounds data
+        variable) defines the mesh geometry. Additional variables are
+        loaded as extra point-data arrays.
+
+        Parameters
+        ----------
+        arrays : list[str], optional
+            Names of data variables to load. If ``None``, loads only
+            the first non-bounds variable.
+        x, y, z : str, optional
+            Coordinate names (see :meth:`PyVistaAccessor.mesh`).
+        order : str, optional
+            Array memory layout for flattening.
+        component : str, optional
+            Vector component dimension name.
+        mesh_type : str, optional
+            Force a specific mesh type.
+
+        Returns
+        -------
+        pyvista.DataSet
+        """
+        if arrays is None:
+            arrays = [name for name in self._obj.data_vars if not is_bounds_variable(name)][:1]
+        if not arrays:
+            raise ValueError("No data variables to visualize.")
+
+        primary = arrays[0]
+        da = self._obj[primary]
+        mesh = da.pyvista.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type)
+
+        # Load additional arrays
+        _order = order or "C"
+        for name in arrays[1:]:
+            if name not in self._obj:
+                continue
+            values = self._obj[name].values
+            if np.issubdtype(values.dtype, np.number) and not values.dtype.isnative:
+                values = values.astype(values.dtype.newbyteorder("="))
+            mesh[name] = values.ravel(order=_order)
+
+        return mesh

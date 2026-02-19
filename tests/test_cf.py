@@ -6,11 +6,21 @@ import pyvista as pv
 import xarray as xr
 
 import pvxarray  # noqa: F401
-from pvxarray.cf import detect_axes
+from pvxarray.cf import detect_axes, is_bounds_variable
 
 # ---------------------------------------------------------------------------
 # detect_axes — integration tests
 # ---------------------------------------------------------------------------
+
+
+def test_is_bounds_variable():
+    """Known bounds suffixes should be detected."""
+    assert is_bounds_variable("time_bnds") is True
+    assert is_bounds_variable("lat_bounds") is True
+    assert is_bounds_variable("lon_vertices") is True
+    assert is_bounds_variable("temperature") is False
+    assert is_bounds_variable("salinity") is False
+    assert is_bounds_variable("bnds") is False  # not a suffix
 
 
 def test_detect_axes_name_heuristics():
