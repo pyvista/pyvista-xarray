@@ -78,8 +78,16 @@ class PyVistaAccessor:
 
     @property
     def data(self) -> np.ndarray:
-        """The underlying NumPy array of the DataArray values."""
-        return self._obj.values
+        """The underlying NumPy array of the DataArray values.
+
+        Ensures native byte order for VTK compatibility. Remote data
+        sources (e.g. OPeNDAP) may return big-endian arrays that VTK
+        cannot interpret correctly.
+        """
+        values = self._obj.values
+        if np.issubdtype(values.dtype, np.number) and not values.dtype.isnative:
+            values = values.astype(values.dtype.newbyteorder("="))
+        return values
 
     @property
     def axes(self) -> dict[str, str]:
@@ -131,6 +139,11 @@ class PyVistaAccessor:
             if not np.issubdtype(values.dtype, np.number):
                 # Non-numeric coordinate: use scaled indices
                 values = np.arange(len(values), dtype=float) * scale
+            elif not values.dtype.isnative:
+                # VTK requires native byte order; remote data (e.g.
+                # OPeNDAP/THREDDS) often arrives big-endian which VTK
+                # would misinterpret as garbage values.
+                values = values.astype(values.dtype.newbyteorder("="))
             return values
         except KeyError as e:
             raise KeyError(
