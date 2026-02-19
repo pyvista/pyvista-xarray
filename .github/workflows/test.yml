@@ -45,3 +45,27 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           verbose: true
+
+  notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install nbconvert nbclient ipykernel matplotlib
+      - name: Install pvxarray
+        run: pip install -e .
+      - name: Run example notebooks
+        run: |
+          jupyter nbconvert --to notebook --execute \
+            --ExecutePreprocessor.timeout=120 \
+            examples/introduction.ipynb \
+            examples/simple.ipynb \
+            examples/ocean_model.ipynb \
+            examples/atmospheric_levels.ipynb \
+            examples/lightning.ipynb
