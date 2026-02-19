@@ -1,3 +1,4 @@
+cf-xarray
 dask
 netcdf4
 pooch

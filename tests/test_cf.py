@@ -1,4 +1,4 @@
-"""Tests for CF-convention coordinate auto-detection."""
+"""Tests for CF-convention coordinate auto-detection via cf-xarray."""
 
 import numpy as np
 import pytest
@@ -6,166 +6,7 @@ import pyvista as pv
 import xarray as xr
 
 import pvxarray  # noqa: F401
-from pvxarray.cf import _detect_axis_for_coord, detect_axes
-
-# ---------------------------------------------------------------------------
-# _detect_axis_for_coord — Priority 1: axis attribute
-# ---------------------------------------------------------------------------
-
-
-class TestDetectByAxisAttr:
-    """Test detection via the ``axis`` coordinate attribute."""
-
-    @pytest.mark.parametrize(
-        "axis_val,expected",
-        [
-            ("X", "X"),
-            ("Y", "Y"),
-            ("Z", "Z"),
-            ("T", "T"),
-            ("x", "X"),  # case-insensitive
-        ],
-    )
-    def test_axis_attribute(self, axis_val, expected):
-        coord = xr.DataArray([1, 2], dims=["foo"], attrs={"axis": axis_val})
-        assert _detect_axis_for_coord("foo", coord) == expected
-
-    def test_axis_attribute_takes_priority(self):
-        """axis attribute should override standard_name and name heuristic."""
-        coord = xr.DataArray(
-            [1, 2],
-            dims=["lon"],
-            attrs={"axis": "Y", "standard_name": "longitude"},
-        )
-        # axis=Y should win over standard_name=longitude and name=lon
-        assert _detect_axis_for_coord("lon", coord) == "Y"
-
-
-# ---------------------------------------------------------------------------
-# _detect_axis_for_coord — Priority 2: standard_name attribute
-# ---------------------------------------------------------------------------
-
-
-class TestDetectByStandardName:
-    """Test detection via the ``standard_name`` coordinate attribute."""
-
-    @pytest.mark.parametrize(
-        "standard_name,expected",
-        [
-            ("longitude", "X"),
-            ("grid_longitude", "X"),
-            ("projection_x_coordinate", "X"),
-            ("latitude", "Y"),
-            ("grid_latitude", "Y"),
-            ("projection_y_coordinate", "Y"),
-            ("altitude", "Z"),
-            ("height", "Z"),
-            ("depth", "Z"),
-            ("air_pressure", "Z"),
-            ("geopotential_height", "Z"),
-            ("ocean_sigma_coordinate", "Z"),
-            ("time", "T"),
-            ("forecast_reference_time", "T"),
-        ],
-    )
-    def test_standard_name(self, standard_name, expected):
-        coord = xr.DataArray([1, 2], dims=["foo"], attrs={"standard_name": standard_name})
-        assert _detect_axis_for_coord("foo", coord) == expected
-
-    def test_standard_name_takes_priority_over_units(self):
-        """standard_name should override units heuristic."""
-        coord = xr.DataArray(
-            [1, 2],
-            dims=["foo"],
-            attrs={"standard_name": "latitude", "units": "degrees_east"},
-        )
-        assert _detect_axis_for_coord("foo", coord) == "Y"
-
-
-# ---------------------------------------------------------------------------
-# _detect_axis_for_coord — Priority 3: units attribute
-# ---------------------------------------------------------------------------
-
-
-class TestDetectByUnits:
-    """Test detection via the ``units`` coordinate attribute."""
-
-    @pytest.mark.parametrize(
-        "units,expected",
-        [
-            ("degrees_east", "X"),
-            ("degree_east", "X"),
-            ("degrees_E", "X"),
-            ("degree_E", "X"),
-            ("degreesEast", "X"),
-            ("degrees_north", "Y"),
-            ("degree_north", "Y"),
-            ("degrees_N", "Y"),
-            ("Pa", "Z"),
-            ("hPa", "Z"),
-            ("mbar", "Z"),
-            ("millibar", "Z"),
-            ("bar", "Z"),
-            ("atm", "Z"),
-        ],
-    )
-    def test_units(self, units, expected):
-        coord = xr.DataArray([1, 2], dims=["foo"], attrs={"units": units})
-        assert _detect_axis_for_coord("foo", coord) == expected
-
-
-# ---------------------------------------------------------------------------
-# _detect_axis_for_coord — Priority 4: name heuristic
-# ---------------------------------------------------------------------------
-
-
-class TestDetectByNameHeuristic:
-    """Test detection via variable name patterns."""
-
-    @pytest.mark.parametrize(
-        "name,expected",
-        [
-            ("lon", "X"),
-            ("longitude", "X"),
-            ("LON", "X"),
-            ("x", "X"),
-            ("X", "X"),
-            ("lat", "Y"),
-            ("latitude", "Y"),
-            ("LAT", "Y"),
-            ("y", "Y"),
-            ("Y", "Y"),
-            ("z", "Z"),
-            ("lev", "Z"),
-            ("level", "Z"),
-            ("depth", "Z"),
-            ("altitude", "Z"),
-            ("height", "Z"),
-            ("isobaric", "Z"),
-            ("pressure", "Z"),
-            ("sigma", "Z"),
-            ("s_rho", "Z"),
-            ("zlev", "Z"),
-            ("time", "T"),
-            ("TIME", "T"),
-        ],
-    )
-    def test_name_pattern(self, name, expected):
-        coord = xr.DataArray([1, 2], dims=["d0"])
-        assert _detect_axis_for_coord(name, coord) == expected
-
-    def test_unknown_name_returns_none(self):
-        coord = xr.DataArray([1, 2], dims=["d0"])
-        assert _detect_axis_for_coord("salinity", coord) is None
-
-    def test_partial_match_not_detected(self):
-        """Names that partially match patterns should not be detected."""
-        coord = xr.DataArray([1, 2], dims=["d0"])
-        # 'longevity' should NOT match 'lon' or 'longitude'
-        assert _detect_axis_for_coord("longevity", coord) is None
-        # 'lateral' should NOT match 'lat' or 'latitude'
-        assert _detect_axis_for_coord("lateral", coord) is None
-
+from pvxarray.cf import detect_axes
 
 # ---------------------------------------------------------------------------
 # detect_axes — integration tests
@@ -173,9 +14,10 @@ class TestDetectByNameHeuristic:
 
 
 class TestDetectAxes:
-    """Test the top-level detect_axes function."""
+    """Test the detect_axes wrapper around cf-xarray."""
 
-    def test_basic_detection(self):
+    def test_name_heuristics(self):
+        """Coordinates named 'lat' and 'lon' should be detected."""
         da = xr.DataArray(
             np.zeros((3, 4)),
             dims=["lat", "lon"],
@@ -185,8 +27,8 @@ class TestDetectAxes:
         assert axes["X"] == "lon"
         assert axes["Y"] == "lat"
 
-    def test_cf_attributes_full(self):
-        """Detection from axis attributes on all four axes."""
+    def test_explicit_axis_attributes(self):
+        """Coordinates with axis='X'/'Y'/'Z' attributes should be detected."""
         da = xr.DataArray(
             np.zeros((2, 3, 4)),
             dims=["z_dim", "y_dim", "x_dim"],
@@ -201,34 +43,33 @@ class TestDetectAxes:
         assert axes["Y"] == "y_coord"
         assert axes["Z"] == "z_coord"
 
-    def test_first_match_wins(self):
-        """If two coords map to the same axis, the first one wins."""
+    def test_units_based_detection(self):
+        """Coordinates with CF units (degrees_east/north) should be detected."""
         da = xr.DataArray(
             np.zeros((3, 4)),
-            dims=["lat", "latitude"],
+            dims=["y_dim", "x_dim"],
             coords={
-                "lat": np.arange(3),
-                "latitude": np.arange(4),
-            },
-        )
-        axes = detect_axes(da)
-        assert axes["Y"] in ("lat", "latitude")
-
-    def test_mixed_detection_strategies(self):
-        """Mix of axis attr, standard_name, and name heuristic."""
-        da = xr.DataArray(
-            np.zeros((2, 3, 4)),
-            dims=["level", "y_dim", "x_dim"],
-            coords={
-                "x_coord": ("x_dim", np.arange(4), {"standard_name": "longitude"}),
+                "x_coord": ("x_dim", np.arange(4), {"units": "degrees_east"}),
                 "y_coord": ("y_dim", np.arange(3), {"units": "degrees_north"}),
-                "level": np.arange(2),  # name heuristic
             },
         )
         axes = detect_axes(da)
         assert axes["X"] == "x_coord"
         assert axes["Y"] == "y_coord"
-        assert axes["Z"] == "level"
+
+    def test_standard_name_detection(self):
+        """Coordinates with standard_name attributes should be detected."""
+        da = xr.DataArray(
+            np.zeros((3, 4)),
+            dims=["y_dim", "x_dim"],
+            coords={
+                "x_coord": ("x_dim", np.arange(4), {"standard_name": "longitude"}),
+                "y_coord": ("y_dim", np.arange(3), {"standard_name": "latitude"}),
+            },
+        )
+        axes = detect_axes(da)
+        assert axes["X"] == "x_coord"
+        assert axes["Y"] == "y_coord"
 
     def test_no_detectable_axes(self):
         """DataArray with non-standard coordinate names returns empty dict."""
@@ -241,9 +82,9 @@ class TestDetectAxes:
         assert axes == {}
 
     def test_scalar_coords_skipped(self):
-        """Scalar (0-dim) coordinates should be ignored by detect_axes.
+        """Scalar (0-dim) coordinates should be ignored.
 
-        After .sel(level=500), 'level' becomes a 0-dim coord and should
+        After .sel(level=N), 'level' becomes a 0-dim coord and should
         not be detected as a spatial axis.
         """
         da = xr.DataArray(
@@ -274,6 +115,15 @@ class TestDetectAxes:
         assert axes["Y"] == "lat"
         assert axes["X"] == "lon"
 
+    def test_eraint_uvz_dataset(self):
+        """Integration test with ERA-Interim data (units-based detection)."""
+        ds = xr.tutorial.load_dataset("eraint_uvz")
+        da = ds.z.isel(month=0)
+        axes = detect_axes(da)
+        assert axes["X"] == "longitude"
+        assert axes["Y"] == "latitude"
+        assert axes["Z"] == "level"
+
 
 # ---------------------------------------------------------------------------
 # PyVistaAccessor auto-detection integration
@@ -281,7 +131,7 @@ class TestDetectAxes:
 
 
 class TestAccessorAutoDetect:
-    """Test that accessor.mesh() auto-detects coordinates."""
+    """Test that accessor.mesh() auto-detects coordinates via cf-xarray."""
 
     def test_mesh_auto_detect_air_temperature(self):
         """da.pyvista.mesh() without explicit x/y should work for air_temperature."""
