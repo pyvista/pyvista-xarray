@@ -43,6 +43,7 @@ jobs:
   notebooks:
     runs-on: ubuntu-latest
     env:
+      HDF5_USE_FILE_LOCKING: "FALSE"
       PYVISTA_OFF_SCREEN: true
     steps:
       - uses: actions/checkout@v4
