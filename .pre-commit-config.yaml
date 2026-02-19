@@ -47,6 +47,12 @@ repos:
         "--no-capitalize-first-letter",
       ]
 
+- repo: https://github.com/executablebooks/mdformat
+  rev: 1.0.0
+  hooks:
+  - id: mdformat
+    additional_dependencies: [mdformat-gfm, mdformat-frontmatter]
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
   hooks:
