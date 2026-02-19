@@ -66,7 +66,7 @@ jobs:
         run: pip install -e .
       - name: Run example notebooks
         run: |
-          xvfb-run jupyter nbconvert --to notebook --execute \
+          jupyter nbconvert --to notebook --execute \
             --ExecutePreprocessor.timeout=120 \
             examples/introduction.ipynb \
             examples/simple.ipynb \
