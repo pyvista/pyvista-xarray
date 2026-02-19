@@ -1,3 +1,18 @@
+"""Create PyVista StructuredGrid meshes from xarray DataArrays.
+
+StructuredGrid handles curvilinear coordinates — where coordinate
+arrays are 2D or 3D (e.g. ``lon_rho(xi, eta)``). The grid has
+logical i/j/k structure but physical points can be arbitrarily
+positioned in space.
+
+.. warning::
+    StructuredGrid creation always copies data because VTK stores
+    points as an interleaved ``(N, 3)`` array, which requires
+    rearranging the source coordinate arrays.
+"""
+
+from __future__ import annotations
+
 import warnings
 
 import numpy as np
@@ -7,7 +22,22 @@ from pvxarray.errors import DataCopyWarning
 
 
 def _coerce_shapes(*arrs):
-    """Coerce all argument arrays to have the same shape."""
+    """Broadcast coordinate arrays to the same shape.
+
+    When mixing 1D and 2D/3D coordinates (e.g. a 1D depth array
+    with 2D lat/lon), this repeats the lower-dimensional arrays
+    to match the highest-dimensional one.
+
+    Parameters
+    ----------
+    *arrs : np.ndarray or None
+        Coordinate arrays. ``None`` values are passed through.
+
+    Returns
+    -------
+    list[np.ndarray or None]
+        Arrays broadcast to the same shape.
+    """
     maxi = 0
     ndim = 0
     for i, arr in enumerate(arrs):
@@ -17,7 +47,7 @@ def _coerce_shapes(*arrs):
             ndim = arr.ndim
             maxi = i
     if ndim < 1:
-        raise ValueError
+        raise ValueError("All coordinate arrays are empty or None.")
     shape = arrs[maxi].shape
     reshaped = []
     for arr in arrs:
@@ -25,7 +55,10 @@ def _coerce_shapes(*arrs):
             if arr.ndim < ndim:
                 arr = np.repeat([arr], shape[2 - maxi], axis=2 - maxi)
             else:
-                raise ValueError
+                raise ValueError(
+                    f"Cannot broadcast coordinate arrays with shapes "
+                    f"{[a.shape for a in arrs if a is not None]}."
+                )
         reshaped.append(arr)
     return reshaped
 
@@ -38,7 +71,7 @@ def _points(
     order: str | None = "F",
     scales: dict | None = None,
 ):
-    """Generate structured points as new array."""
+    """Generate structured points as a new interleaved array."""
     if order is None:
         order = "F"
     self._mesh = pv.StructuredGrid()
@@ -73,9 +106,37 @@ def mesh(
     y: str | None = None,
     z: str | None = None,
     order: str = "F",
-    component: str | None = None,  # TODO
+    component: str | None = None,
     scales: dict | None = None,
 ):
+    """Create a :class:`pyvista.StructuredGrid` from curvilinear coordinates.
+
+    Parameters
+    ----------
+    self : PyVistaAccessor
+        The accessor instance (passed internally).
+    x, y, z : str, optional
+        Names of the coordinate variables for each axis.
+        At least two must be specified.
+    order : str, default "F"
+        Array memory layout for flattening (Fortran order is standard
+        for VTK structured grids).
+    component : str, optional
+        Not currently supported. Raises ``ValueError``.
+    scales : dict, optional
+        Scale factors for non-numeric coordinates.
+
+    Returns
+    -------
+    pyvista.StructuredGrid
+        The mesh with data values as point data.
+
+    Warns
+    -----
+    DataCopyWarning
+        Always emitted because StructuredGrid creation requires
+        copying data into an interleaved point array.
+    """
     if order is None:
         order = "F"
     if component is not None:

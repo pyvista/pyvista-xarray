@@ -1,3 +1,16 @@
+"""Create PyVista RectilinearGrid meshes from xarray DataArrays.
+
+RectilinearGrid is the most memory-efficient mesh type: it stores 1D
+coordinate arrays that define axis-aligned grid lines, and VTK
+reconstructs the full 3D grid implicitly. This preserves zero-copy
+memory sharing between xarray and VTK for both coordinates and data.
+
+Use this when coordinates are 1D (one value per grid line), which
+is the case for most regular lat/lon/level grids.
+"""
+
+from __future__ import annotations
+
 import warnings
 
 import pyvista as pv
@@ -14,6 +27,31 @@ def mesh(
     component: str | None = None,
     scales: dict | None = None,
 ):
+    """Create a :class:`pyvista.RectilinearGrid` from 1D coordinates.
+
+    Parameters
+    ----------
+    self : PyVistaAccessor
+        The accessor instance (passed internally).
+    x, y, z : str, optional
+        Names of the coordinate variables for each axis.
+        At least one must be specified.
+    order : str, default "C"
+        Array memory layout for flattening data values.
+    component : str, optional
+        Name of an extra dimension for multi-component arrays
+        (e.g. ``"band"`` for RGB data). Triggers a data copy.
+    scales : dict, optional
+        Scale factors for non-numeric coordinates (replaced by
+        indices that are multiplied by the scale value).
+
+    Returns
+    -------
+    pyvista.RectilinearGrid
+        The mesh with data values as point data. Coordinates and
+        data share memory with the source xarray DataArray when
+        possible (no copies for numeric, C-contiguous data).
+    """
     if order is None:
         order = "C"
     self._mesh = pv.RectilinearGrid()
@@ -31,7 +69,6 @@ def mesh(
     values = self.data
     values_dim = values.ndim
     if component is not None:
-        # if ndim < values.ndim and values.ndim == ndim + 1:
         # Assuming additional component array
         dims = set(self._obj.dims)
         dims.discard(component)
@@ -48,13 +85,18 @@ def mesh(
         values = values.ravel(order=order)
     # Check dimensionality of data
     if values_dim != ndim:
-        msg = f"Dimensional mismatch between specified X, Y, Z coords and dimensionality of DataArray ({ndim} vs {values_dim})"
+        msg = (
+            f"Dimensional mismatch between specified X, Y, Z coords "
+            f"and dimensionality of DataArray ({ndim} vs {values_dim})"
+        )
         if ndim > values_dim:
             raise ValueError(
                 f"{msg}. Too many coordinate dimensions specified leave out Y and/or Z."
             )
         raise ValueError(
-            f"{msg}. Too few coordinate dimensions specified. Be sure to specify Y and/or Z or reduce the dimensionality of the DataArray by indexing along non-spatial coordinates like Time."
+            f"{msg}. Too few coordinate dimensions specified. Be sure to specify "
+            f"Y and/or Z or reduce the dimensionality of the DataArray by indexing "
+            f"along non-spatial coordinates like Time."
         )
     self._mesh[self._obj.name or "data"] = values
     return self._mesh

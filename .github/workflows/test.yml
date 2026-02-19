@@ -21,20 +21,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
       - name: Install pvxarray
-        run: pip install -e .
+        run: pip install -e .[test]
       - name: Scooby Report
         run: python -c "import pvxarray;print(pvxarray.Report())"
       - name: Run Tests
         run: |
           coverage run -m pytest -v
           coverage xml -o coverage.xml
-      # - name: Run Doc Tests
-      #   run: |
-      #     make doctest
       - name: Stash coverage
         uses: actions/upload-artifact@v4
         with:
@@ -45,3 +39,29 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           verbose: true
+
+  # notebooks:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     PYVISTA_OFF_SCREEN: true
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+  #     - name: Set up headless display
+  #       uses: pyvista/setup-headless-display-action@v4
+  #     - name: Install pvxarray
+  #       run: pip install -e '.[test,examples]' nbconvert nbclient ipykernel matplotlib
+  #     - name: Run example notebooks
+  #       run: |
+  #         jupyter nbconvert --to notebook --execute \
+  #           --ExecutePreprocessor.timeout=120 \
+  #           examples/introduction.ipynb \
+  #           examples/simple.ipynb \
+  #           examples/atmospheric_levels.ipynb \
+  #           examples/lightning.ipynb
+  #         # NOTE: ocean_model.ipynb is excluded because ROMS_example.nc
+  #         # triggers an HDF5 file-locking bug with the netcdf4 library
+  #         # on GitHub Actions runners (OSError: [Errno -101] NetCDF: HDF error).

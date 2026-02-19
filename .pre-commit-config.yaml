@@ -17,7 +17,6 @@ repos:
   hooks:
   - id: blackdoc
     files: '\.py$'
-    exclude: pyvista/plotting/charts.py
 
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1
@@ -36,8 +35,7 @@ repos:
   hooks:
   - id: pydocstyle
     additional_dependencies: [tomli==2.0.1]
-    files: ^(pyvista/|other/)
-    exclude: ^pyvista/ext/
+    files: ^pvxarray/
 
 - repo: https://github.com/DanielNoord/pydocstringformatter
   rev: v0.7.5
@@ -49,6 +47,12 @@ repos:
         "--no-capitalize-first-letter",
       ]
 
+- repo: https://github.com/executablebooks/mdformat
+  rev: 1.0.0
+  hooks:
+  - id: mdformat
+    additional_dependencies: [mdformat-gfm, mdformat-frontmatter]
+
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
   hooks:
@@ -56,9 +60,7 @@ repos:
   - id: debug-statements
   - id: no-commit-to-branch
     args: [--branch, main]
-  - id: requirements-txt-fixer
   - id: trailing-whitespace
-    exclude: ^(|pyvista/examples/.*\.ply|pyvista/examples/.*\.vtk)
 
 - repo: https://github.com/ComPWA/taplo-pre-commit
   rev: v0.9.3

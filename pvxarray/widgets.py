@@ -1,3 +1,5 @@
+"""Interactive Jupyter widgets for time-series visualization."""
+
 import ipywidgets as widgets
 import pyvista as pv
 from tqdm import tqdm
@@ -8,6 +10,8 @@ from pvxarray.vtk_source import PyVistaXarraySource
 def time_controls(
     engine: PyVistaXarraySource, plotter: pv.BasePlotter, continuous_update=False, step=1
 ):
+    """Create play/slider widgets to scrub through time steps."""
+
     def update_time_index(time_index):
         engine.time_index = time_index
         plotter.render()
@@ -37,12 +41,14 @@ def time_controls(
 
 
 def show_ui(engine: PyVistaXarraySource, plotter: pv.BasePlotter, continuous_update=False, step=1):
+    """Display the plotter with time controls in a Jupyter notebook."""
     iframe = plotter.show(return_viewer=True, jupyter_kwargs={"height": "600px", "width": "99%"})
     controls = time_controls(engine, plotter, continuous_update=continuous_update, step=step)
     return widgets.VBox([iframe, controls])
 
 
 def save_movie(engine: PyVistaXarraySource, plotter: pv.BasePlotter, filename: str, **kwargs):
+    """Render each time step to a movie file."""
     plotter.open_movie(filename, **kwargs)
     for tstep in tqdm(range(engine.max_time_index + 1)):
         engine.time_index = tstep

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 import rioxarray
 import xarray as xr
@@ -194,8 +195,6 @@ def test_2D_rectilinear_yz():
 
 
 def test_scales():
-    import pandas as pd
-
     times = pd.date_range("2000-01-01", periods=3)
     lat = np.array([42.25, 42.21, 42.10])
     temp = 15 + 8 * np.random.randn(3, 3)

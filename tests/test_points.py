@@ -4,6 +4,7 @@ import pyvista as pv
 import xarray as xr
 
 from pvxarray import DataCopyWarning
+from pvxarray.points import mesh as points_mesh
 
 
 @pytest.fixture
@@ -49,8 +50,16 @@ def test_points_mesh_xyz(point_data):
 
 def test_points_mesh_no_coords():
     da = xr.DataArray(np.array([1.0, 2.0, 3.0]), dims=["pts"], name="vals")
-    with pytest.raises(ValueError, match="at least one dimension"):
+    # When no explicit coords and no detectable CF axes, auto-detection fails
+    with pytest.raises(ValueError, match="Could not auto-detect"):
         da.pyvista.mesh(mesh_type="points")
+
+
+def test_points_mesh_no_coords_explicit():
+    """When x/y/z are all None and passed explicitly, PolyData raises."""
+    da = xr.DataArray(np.array([1.0, 2.0, 3.0]), dims=["pts"], name="vals")
+    with pytest.raises(ValueError, match="at least one dimension"):
+        points_mesh(da.pyvista, x=None, y=None, z=None)
 
 
 def test_points_mesh_component():
