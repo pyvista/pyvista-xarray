@@ -20,7 +20,7 @@ class _LocIndexer:
         return self.parent._obj.loc[key]
 
     def __setitem__(self, key, value) -> None:
-        self.parent._obj.__setitem__(self, key, value)
+        self.parent._obj.loc[key] = value
 
 
 @xr.register_dataarray_accessor("pyvista")

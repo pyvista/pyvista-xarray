@@ -67,7 +67,7 @@ class PyVistaXarraySource(BaseSource):
         if isinstance(time, str):
             self._time = time
         elif time is not None:
-            raise TypeError
+            raise TypeError("time must be a string or None")
 
         self._z_index = None
         self._slicing = None

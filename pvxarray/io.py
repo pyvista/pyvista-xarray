@@ -4,15 +4,11 @@ import warnings
 
 import numpy as np
 import pyvista as pv
+from pyvista import ImageData
 import xarray as xr
 from xarray.backends import BackendEntrypoint
 
 from pvxarray.errors import DataCopyWarning
-
-try:
-    from pyvista import ImageData
-except ImportError:  # pyvista<0.40
-    from pyvista import UniformGrid as ImageData
 
 
 def rectilinear_grid_to_dataset(mesh):

@@ -30,7 +30,7 @@ jobs:
         run: python -c "import pvxarray;print(pvxarray.Report())"
       - name: Run Tests
         run: |
-          pytest -v --cov=pvxarray
+          coverage run -m pytest -v
           coverage xml -o coverage.xml
       # - name: Run Doc Tests
       #   run: |
