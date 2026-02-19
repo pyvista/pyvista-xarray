@@ -61,7 +61,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install nbconvert nbclient ipykernel matplotlib
+          pip install nbconvert nbclient ipykernel matplotlib 'pyvista[jupyter]'
       - name: Install pvxarray
         run: pip install -e .
       - name: Run example notebooks
