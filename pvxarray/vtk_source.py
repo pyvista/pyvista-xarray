@@ -22,11 +22,13 @@ class BaseSource(VTKPythonAlgorithmBase):
     """Base class for VTK Python algorithm sources with PyVista wrapping."""
 
     def __init__(self, nOutputPorts=1, outputType="vtkTable", **kwargs):
+        """Initialize the base source with no input ports."""
         VTKPythonAlgorithmBase.__init__(
             self, nInputPorts=0, nOutputPorts=nOutputPorts, outputType=outputType, **kwargs
         )
 
     def GetOutput(self, port=0):
+        """Return the output wrapped as a PyVista mesh."""
         output = pv.wrap(self.GetOutputDataObject(port))
         if output.active_scalars is None and output.n_arrays:
             if len(output.point_data):
@@ -100,6 +102,7 @@ class PyVistaXarraySource(BaseSource):
         mesh_type: str | None = None,
         resolution: float | None = None,
     ):
+        """Initialize the source with a DataArray and coordinate mapping."""
         BaseSource.__init__(
             self,
             nOutputPorts=1,
@@ -129,6 +132,7 @@ class PyVistaXarraySource(BaseSource):
         self._mesh = None
 
     def __str__(self):
+        """Return a human-readable summary of the source configuration."""
         return (
             f"PyVistaXarraySource\n"
             f"  data_array: {self._data_array}\n"

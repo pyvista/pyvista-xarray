@@ -63,10 +63,12 @@ class PyVistaAccessor:
     """
 
     def __init__(self, xarray_obj: xr.DataArray):
+        """Initialize the accessor with the parent DataArray."""
         self._obj = xarray_obj
         self._mesh = None
 
     def __getitem__(self, key):
+        """Index into the underlying DataArray."""
         return self._obj.__getitem__(key)
 
     @property
