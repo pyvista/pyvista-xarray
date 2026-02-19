@@ -12,14 +12,26 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python",
 ]
 dependencies = ["cf-xarray", "pyvista>=0.37", "scooby", "xarray>=2022.12.0"]
 description = "xarray DataArray accessors for PyVista"
+
+[project.optional-dependencies]
+examples = [
+  "geovista",
+  "open-radar-data",
+  "pyvista[jupyter]",
+  "siphon",
+  "tqdm",
+  "xradar",
+  "zarr",
+]
 license = "Apache-2.0"
 name = "pyvista-xarray"
 readme = "README.md"
 requires-python = ">=3.10"
+style = ["codespell", "pre-commit", "pydocstyle", "ruff"]
+test = ["dask", "netcdf4", "pooch", "pytest", "pytest-cov", "rioxarray"]
 version = "0.1.8"
 
 [project.entry-points."xarray.backends"]
@@ -27,6 +39,8 @@ pyvista = "pvxarray.io:PyVistaBackendEntrypoint"
 
 [project.urls]
 Homepage = "https://github.com/pyvista/pyvista-xarray"
+Source = "https://github.com/pyvista/pyvista-xarray"
+Tracker = "https://github.com/pyvista/pyvista-xarray/issues"
 
 [tool.setuptools.packages.find]
 include = ["pvxarray*"]

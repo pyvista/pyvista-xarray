@@ -21,20 +21,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
       - name: Install pvxarray
-        run: pip install -e .
+        run: pip install -e .[test]
       - name: Scooby Report
         run: python -c "import pvxarray;print(pvxarray.Report())"
       - name: Run Tests
         run: |
           coverage run -m pytest -v
           coverage xml -o coverage.xml
-      # - name: Run Doc Tests
-      #   run: |
-      #     make doctest
       - name: Stash coverage
         uses: actions/upload-artifact@v4
         with:
@@ -58,12 +52,8 @@ jobs:
           python-version: "3.12"
       - name: Set up headless display
         uses: pyvista/setup-headless-display-action@v4
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install nbconvert nbclient ipykernel matplotlib 'pyvista[jupyter]'
       - name: Install pvxarray
-        run: pip install -e .
+        run: pip install -e '.[test,examples]' nbconvert nbclient ipykernel matplotlib
       - name: Run example notebooks
         run: |
           jupyter nbconvert --to notebook --execute \

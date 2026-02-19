@@ -1,4 +1,0 @@
-codespell
-pre-commit
-pydocstyle
-ruff
