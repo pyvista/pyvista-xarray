@@ -48,12 +48,16 @@ jobs:
 
   notebooks:
     runs-on: ubuntu-latest
+    env:
+      PYVISTA_OFF_SCREEN: true
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Set up headless display
+        uses: pyvista/setup-headless-display-action@v2
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -62,7 +66,7 @@ jobs:
         run: pip install -e .
       - name: Run example notebooks
         run: |
-          jupyter nbconvert --to notebook --execute \
+          xvfb-run jupyter nbconvert --to notebook --execute \
             --ExecutePreprocessor.timeout=120 \
             examples/introduction.ipynb \
             examples/simple.ipynb \
