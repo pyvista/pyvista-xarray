@@ -203,6 +203,36 @@ class PyVistaAccessor:
             *mesh_type* is not a recognized type.
         ValueError
             If no spatial coordinates can be determined.
+
+        Notes
+        -----
+        **Data is always assigned as point data.** The DataArray values
+        are placed on the mesh nodes (points), not the cells. VTK
+        interpolates point data smoothly across cell faces during
+        rendering.
+
+        This is correct when coordinates represent sample locations
+        (e.g. observation stations) or cell centers (the most common
+        convention in xarray datasets like ``air_temperature``).
+
+        For data that represents per-cell quantities (spatial averages
+        over grid boxes), cell data with flat shading may be more
+        appropriate. Convert after meshing::
+
+            mesh = da.pyvista.mesh(x="lon", y="lat")
+            mesh = mesh.point_data_to_cell_data()
+
+        Note that ``point_data_to_cell_data()`` averages neighboring
+        node values, so it is a smoothing operation, not a lossless
+        conversion. For exact cell data, build the mesh manually::
+
+            import numpy as np
+            import pyvista as pv
+
+            grid = pv.RectilinearGrid(lon_edges, lat_edges)
+            grid.cell_data["temperature"] = da.values.ravel()
+
+        See :ref:`point-vs-cell-data` in the user guide for details.
         """
         # Auto-detect coordinates if none specified
         if x is None and y is None and z is None:
@@ -410,7 +440,10 @@ class PyVistaDatasetAccessor:
 
         The first variable in *arrays* (or the first non-bounds data
         variable) defines the mesh geometry. Additional variables are
-        loaded as extra point-data arrays.
+        loaded as extra point-data arrays on the same mesh.
+
+        See :meth:`PyVistaAccessor.mesh` for notes on the point data
+        assumption and how to work with cell data.
 
         Parameters
         ----------
