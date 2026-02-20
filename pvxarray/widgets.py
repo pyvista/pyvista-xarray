@@ -1,8 +1,22 @@
 """Interactive Jupyter widgets for time-series visualization."""
 
-import ipywidgets as widgets
+from __future__ import annotations
+
+_INSTALL_HINT = "Install with: pip install 'pyvista-xarray[jupyter]'"
+
+try:
+    import ipywidgets as widgets
+except ImportError:
+    raise ImportError(f"ipywidgets is required for interactive widgets. {_INSTALL_HINT}") from None
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    raise ImportError(
+        f"tqdm is required for progress bars and movie export. {_INSTALL_HINT}"
+    ) from None
+
 import pyvista as pv
-from tqdm import tqdm
 
 from pvxarray.vtk_source import PyVistaXarraySource
 
