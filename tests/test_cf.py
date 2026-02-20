@@ -8,10 +8,6 @@ import xarray as xr
 import pvxarray  # noqa: F401
 from pvxarray.cf import detect_axes, is_bounds_variable
 
-# ---------------------------------------------------------------------------
-# detect_axes — integration tests
-# ---------------------------------------------------------------------------
-
 
 def test_is_bounds_variable():
     """Known bounds suffixes should be detected."""
@@ -137,11 +133,6 @@ def test_detect_axes_eraint_uvz_dataset():
     assert axes["X"] == "longitude"
     assert axes["Y"] == "latitude"
     assert axes["Z"] == "level"
-
-
-# ---------------------------------------------------------------------------
-# PyVistaAccessor auto-detection integration
-# ---------------------------------------------------------------------------
 
 
 def test_mesh_auto_detect_air_temperature():
