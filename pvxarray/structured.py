@@ -136,6 +136,19 @@ def mesh(
     DataCopyWarning
         Always emitted because StructuredGrid creation requires
         copying data into an interleaved point array.
+
+    Notes
+    -----
+    **Point data vs cell data.** Like all pvxarray mesh builders,
+    this method assigns data as **point data** (one value per grid
+    node). VTK interpolates point data smoothly across cell faces.
+
+    For curvilinear grids where data represents per-cell averages,
+    convert after meshing::
+
+        mesh = mesh.point_data_to_cell_data()
+
+    This averages neighboring node values and is not lossless.
     """
     if order is None:
         order = "F"

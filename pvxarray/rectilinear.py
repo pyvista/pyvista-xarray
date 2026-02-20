@@ -51,6 +51,35 @@ def mesh(
         The mesh with data values as point data. Coordinates and
         data share memory with the source xarray DataArray when
         possible (no copies for numeric, C-contiguous data).
+
+    Notes
+    -----
+    **Point data vs cell data.** A ``RectilinearGrid`` with ``N``
+    coordinate values along an axis has ``N`` points but only
+    ``N - 1`` cells. This method assigns the DataArray values as
+    **point data** (one value per grid node). VTK interpolates
+    point data smoothly across cell faces when rendering.
+
+    This works naturally when xarray coordinates are cell centers
+    (the common convention), because the number of coordinate
+    values equals the number of data values.
+
+    If your coordinates represent cell **boundaries** (``N + 1``
+    edges for ``N`` data values), the shape will not match and
+    you will get a ``ValueError``. In that case, build the mesh
+    manually with cell data::
+
+        import pyvista as pv
+
+        grid = pv.RectilinearGrid(lon_edges, lat_edges)
+        grid.cell_data["temperature"] = da.values.ravel()
+
+    To convert an existing point-data mesh to cell data for
+    flat-shaded rendering::
+
+        mesh = mesh.point_data_to_cell_data()
+
+    This averages neighboring node values and is not lossless.
     """
     if order is None:
         order = "C"
@@ -70,8 +99,7 @@ def mesh(
     values_dim = values.ndim
     if component is not None:
         # Assuming additional component array
-        dims = set(self._obj.dims)
-        dims.discard(component)
+        dims = [d for d in self._obj.dims if d != component]
         values = self._obj.transpose(*dims, component, transpose_coords=True).values
         values = values.reshape((-1, values.shape[-1]), order=order)
         warnings.warn(

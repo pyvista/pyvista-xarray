@@ -31,7 +31,14 @@ examples = [
   "xradar",
   "zarr",
 ]
-jupyter = ["dask", "netcdf4", "pyvista[jupyter]", "rioxarray"]
+jupyter = [
+  "dask",
+  "ipywidgets",
+  "netcdf4",
+  "pyvista[jupyter]",
+  "rioxarray",
+  "tqdm",
+]
 style = ["codespell", "pre-commit", "pydocstyle", "ruff"]
 test = ["dask", "netcdf4", "pooch", "pytest", "pytest-cov", "rioxarray"]
 
