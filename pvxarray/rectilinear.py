@@ -70,8 +70,7 @@ def mesh(
     values_dim = values.ndim
     if component is not None:
         # Assuming additional component array
-        dims = set(self._obj.dims)
-        dims.discard(component)
+        dims = [d for d in self._obj.dims if d != component]
         values = self._obj.transpose(*dims, component, transpose_coords=True).values
         values = values.reshape((-1, values.shape[-1]), order=order)
         warnings.warn(

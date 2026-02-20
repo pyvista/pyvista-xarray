@@ -55,8 +55,7 @@ def mesh(
         raise ValueError("You must specify at least one dimension as X, Y, or Z.")
     values = self.data
     if component is not None:
-        dims = set(self._obj.dims)
-        dims.discard(component)
+        dims = [d for d in self._obj.dims if d != component]
         values = self._obj.transpose(*dims, component, transpose_coords=True).values
         values = values.reshape((-1, values.shape[-1]), order=order)
         warnings.warn(
