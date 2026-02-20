@@ -19,7 +19,7 @@ license = "Apache-2.0"
 name = "pyvista-xarray"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.8"
+version = "0.2.0.dev0"
 
 [project.optional-dependencies]
 examples = [
