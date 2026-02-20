@@ -2,23 +2,21 @@
 
 from __future__ import annotations
 
-_INSTALL_HINT = "Install with: pip install 'pyvista-xarray[jupyter]'"
-
-try:
-    import ipywidgets as widgets
-except ImportError:
-    raise ImportError(f"ipywidgets is required for interactive widgets. {_INSTALL_HINT}") from None
-
-try:
-    from tqdm import tqdm
-except ImportError:
-    raise ImportError(
-        f"tqdm is required for progress bars and movie export. {_INSTALL_HINT}"
-    ) from None
+from importlib.util import find_spec
 
 import pyvista as pv
 
 from pvxarray.vtk_source import PyVistaXarraySource
+
+_INSTALL_HINT = "Install with: pip install 'pyvista-xarray[jupyter]'"
+
+if find_spec("ipywidgets") is None:
+    raise ImportError(f"ipywidgets is required for interactive widgets. {_INSTALL_HINT}")
+if find_spec("tqdm") is None:
+    raise ImportError(f"tqdm is required for progress bars and movie export. {_INSTALL_HINT}")
+
+import ipywidgets as widgets  # noqa: E402
+from tqdm import tqdm  # noqa: E402
 
 
 def time_controls(
