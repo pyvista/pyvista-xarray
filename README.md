@@ -273,6 +273,7 @@ directory contains Jupyter notebooks demonstrating various use cases:
 | [cartographic.ipynb](examples/cartographic.ipynb)             | Geographic projections with GeoVista                     |
 | [radar.ipynb](examples/radar.ipynb)                           | Radar data with polar coordinates via xradar             |
 | [sea_temps.ipynb](examples/sea_temps.ipynb)                   | Sea surface temperature raster data                      |
+| [volume_rendering.ipynb](examples/volume_rendering.ipynb)     | Volume rendering with automatic ImageData detection      |
 
 There are also Python scripts for interactive Trame web applications:
 `examples/level_of_detail.py` and `examples/level_of_detail_geovista.py`.
