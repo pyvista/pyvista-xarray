@@ -91,9 +91,21 @@ def make_image_data(da, x, y, z):
     return im
 
 
+def _test_mapper(mesh, mapper_name):
+    """Test whether a volume mapper works with a given mesh type."""
+    try:
+        pl = pv.Plotter(off_screen=True)
+        pl.add_volume(mesh, mapper=mapper_name)
+        pl.render()
+        pl.close()
+    except Exception:
+        return "NOT SUPPORTED"
+    return "OK"
+
+
 def print_table(rows, headers):
     """Print a formatted table."""
-    widths = [max(len(str(r[i])) for r in [headers] + rows) for i in range(len(headers))]
+    widths = [max(len(str(r[i])) for r in [headers, *rows]) for i in range(len(headers))]
     fmt = "  ".join(f"{{:<{w}}}" for w in widths)
     print(fmt.format(*headers))
     print(fmt.format(*("-" * w for w in widths)))
@@ -123,7 +135,7 @@ def main():
     scalar_name = "images"
     clim = (0, 30000)
 
-    print(f"Dataset: cells3d nuclei channel")
+    print("Dataset: cells3d nuclei channel")
     print(f"  Shape: {da.shape}  ({da.nbytes / 1024 / 1024:.1f} MB)")
     dx = np.diff(da.x.values[:2])[0]
     print(f"  Uniform spacing: {dx:.4f} on all axes")
@@ -172,14 +184,16 @@ def main():
         rg_t = benchmark_volume_render(rg, "density", (-2, 2), n_iter=n_vol_synth)
 
         ratio = rg_t.mean() / im_t.mean()
-        pts = f"{n ** 3:,}"
-        vol_rows.append((
-            f"{n}^3",
-            pts,
-            f"{im_t.mean() * 1000:.0f} ms",
-            f"{rg_t.mean() * 1000:.0f} ms",
-            f"{ratio:.2f}x",
-        ))
+        pts = f"{n**3:,}"
+        vol_rows.append(
+            (
+                f"{n}^3",
+                pts,
+                f"{im_t.mean() * 1000:.0f} ms",
+                f"{rg_t.mean() * 1000:.0f} ms",
+                f"{ratio:.2f}x",
+            )
+        )
 
     print_table(vol_rows, ("Grid", "Points", "ImageData", "RectilinearGrid", "Ratio"))
     print()
@@ -198,14 +212,8 @@ def main():
     mapper_rows = []
     for mapper_name in ["smart", "gpu", "fixed_point"]:
         for label, mesh in [("ImageData", small_im), ("RectilinearGrid", small_rg)]:
-            try:
-                pl = pv.Plotter(off_screen=True)
-                pl.add_volume(mesh, mapper=mapper_name)
-                pl.render()
-                pl.close()
-                mapper_rows.append((mapper_name, label, "OK"))
-            except Exception:
-                mapper_rows.append((mapper_name, label, "NOT SUPPORTED"))
+            status = _test_mapper(mesh, mapper_name)
+            mapper_rows.append((mapper_name, label, status))
 
     print_table(mapper_rows, ("Mapper", "Mesh Type", "Status"))
     print()

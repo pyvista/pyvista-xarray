@@ -2,9 +2,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 import pyvista as pv
 from pyvista import ImageData
-import pytest
 import rioxarray
 import xarray as xr
 

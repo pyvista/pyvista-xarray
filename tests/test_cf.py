@@ -156,7 +156,7 @@ def test_mesh_auto_detect_with_cf_attributes():
         name="temp",
     )
     mesh = da.pyvista.mesh()
-    assert isinstance(mesh, (pv.RectilinearGrid, pv.ImageData))
+    assert isinstance(mesh, pv.RectilinearGrid | pv.ImageData)
     assert mesh.n_points == 12
 
 
@@ -202,5 +202,5 @@ def test_explicit_coords_override_auto_detect():
     # These coords have non-standard names, so auto-detect would fail.
     # But explicit specification should work.
     mesh = da.pyvista.mesh(x="b", y="a")
-    assert isinstance(mesh, (pv.RectilinearGrid, pv.ImageData))
+    assert isinstance(mesh, pv.RectilinearGrid | pv.ImageData)
     assert mesh.n_points == 12
