@@ -110,7 +110,7 @@ def test_convert_vts(vts_path):
 
 
 def test_pyvista_to_xarray_unsupported_type():
-    mesh = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]]))
+    mesh = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float32))
     with pytest.raises(TypeError, match="unable to generate"):
         pyvista_to_xarray(mesh)
 
