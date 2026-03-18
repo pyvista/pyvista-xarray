@@ -1,6 +1,8 @@
+"""PyVista-xarray: xarray DataArray accessors for PyVista."""
+
 # flake8: noqa: F401
 from pvxarray._version import __version__
-from pvxarray.accessor import PyVistaAccessor
+from pvxarray.accessor import PyVistaAccessor, PyVistaDatasetAccessor
 from pvxarray.errors import DataCopyWarning
 from pvxarray.io import pyvista_to_xarray
 from pvxarray.report import Report

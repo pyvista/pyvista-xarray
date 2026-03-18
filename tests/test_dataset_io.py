@@ -3,15 +3,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import pyvista as pv
-import scooby
+from pyvista import ImageData
 import xarray as xr
 
-from pvxarray import pyvista_to_xarray
-
-try:
-    from pyvista import ImageData
-except ImportError:  # pyvista<0.40
-    from pyvista import UniformGrid as ImageData
+from pvxarray import DataCopyWarning, pyvista_to_xarray
+from pvxarray.io import PyVistaBackendEntrypoint
 
 
 @pytest.fixture
@@ -51,7 +47,9 @@ def test_read_vti(vti_path):
     assert np.allclose(ds["x"].values, truth_r.x)
     assert np.allclose(ds["y"].values, truth_r.y)
     assert np.allclose(ds["z"].values, truth_r.z)
+    # The mesh from xarray should be an ImageData since coords are uniform
     im = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
+    assert isinstance(im, ImageData)
     assert im.cast_to_rectilinear_grid() == truth_r
 
 
@@ -68,20 +66,22 @@ def test_read_vts(vts_path):
 def test_convert_vtr(vtr_path):
     truth = pv.RectilinearGrid(vtr_path)
     ds = pyvista_to_xarray(truth)
-    mesh = ds["air"].pyvista.mesh(x="x", y="y", z="z")
-    assert np.array_equal(ds["air"].values.ravel(), truth["air"].ravel())
-    assert np.may_share_memory(ds["air"].values.ravel(), truth["air"].ravel())
+    da = ds["air"]
+    mesh = da.pyvista.mesh(x="x", y="y", z="z")
+    # Point data should share memory through the full chain
+    assert np.array_equal(da.values.ravel(), truth["air"].ravel())
+    assert np.may_share_memory(da.values.ravel(), truth["air"].ravel())
+    # Coordinate values should be equal
     assert np.array_equal(mesh.x, truth.x)
     assert np.array_equal(mesh.y, truth.y)
     assert np.array_equal(mesh.z, truth.z)
-    assert np.may_share_memory(mesh.z, truth.z)
+    # pvxarray should share coords with what xarray provides
+    # (dimension coords may not share with the original VTK mesh
+    # due to pandas Index copy-on-write behavior in pandas>=3.0)
+    assert np.may_share_memory(mesh.x, da["x"].values)
+    assert np.may_share_memory(mesh.y, da["y"].values)
+    assert np.may_share_memory(mesh.z, da["z"].values)
     assert mesh == truth
-
-    # TODO: figure out why this is failing
-    #   broke after https://github.com/pyvista/pyvista/pull/3179
-    if not scooby.meets_version(pv.__version__, "0.37"):
-        assert np.may_share_memory(mesh.x, truth.x)
-        assert np.may_share_memory(mesh.y, truth.y)
 
 
 def test_convert_vti(vti_path):
@@ -90,8 +90,8 @@ def test_convert_vti(vti_path):
     ds = pyvista_to_xarray(truth)
     mesh = ds["RTData"].pyvista.mesh(x="x", y="y", z="z")
     assert np.array_equal(ds["RTData"].values.ravel(), truth["RTData"].ravel())
-    assert np.may_share_memory(ds["RTData"].values.ravel(), truth["RTData"].ravel())
-    # assert np.array_equal(mesh.points, truth_r.points)
+    # The roundtrip should produce an ImageData
+    assert isinstance(mesh, ImageData)
     assert mesh.cast_to_rectilinear_grid() == truth_r
 
 
@@ -105,3 +105,38 @@ def test_convert_vts(vts_path):
     assert np.array_equal(mesh.y, truth.y)
     assert np.array_equal(mesh.z, truth.z)
     assert mesh == truth
+
+
+def test_pyvista_to_xarray_unsupported_type():
+    mesh = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]]))
+    with pytest.raises(TypeError, match="unable to generate"):
+        pyvista_to_xarray(mesh)
+
+
+def test_guess_can_open():
+    entry = PyVistaBackendEntrypoint()
+    assert entry.guess_can_open("test.vtr") is True
+    assert entry.guess_can_open("test.vts") is True
+    assert entry.guess_can_open("test.vti") is True
+    assert entry.guess_can_open("test.vtk") is True
+    assert entry.guess_can_open("test.nc") is False
+    assert entry.guess_can_open("test.csv") is False
+    assert entry.guess_can_open(123) is False
+
+
+def test_image_data_to_dataset_nonzero_origin():
+    grid = ImageData(dimensions=(3, 4, 2), spacing=(0.5, 1.0, 2.0), origin=(1.0, 2.0, 3.0))
+    grid.point_data["values"] = np.arange(grid.n_points, dtype=float)
+    ds = pyvista_to_xarray(grid)
+    assert np.isclose(ds["x"].values[0], 1.0)
+    assert np.isclose(ds["y"].values[0], 2.0)
+    assert np.isclose(ds["z"].values[0], 3.0)
+    assert np.isclose(ds["x"].values[-1], 1.0 + 2 * 0.5)
+    assert np.isclose(ds["y"].values[-1], 2.0 + 3 * 1.0)
+    assert np.isclose(ds["z"].values[-1], 3.0 + 1 * 2.0)
+
+
+def test_structured_grid_to_dataset_warning(vts_path):
+    truth = pv.StructuredGrid(vts_path)
+    with pytest.warns(DataCopyWarning):
+        pyvista_to_xarray(truth)

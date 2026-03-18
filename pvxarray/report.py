@@ -1,7 +1,11 @@
+"""Environment and dependency reporting."""
+
 import scooby
 
 
 class Report(scooby.Report):
+    """Report on the environment and installed package versions."""
+
     def __init__(self, additional=None, ncol=3, text_width=80, sort=False):
         """Initiate a scooby.Report instance."""
         core = [

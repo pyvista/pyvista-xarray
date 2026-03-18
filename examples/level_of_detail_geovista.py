@@ -157,18 +157,20 @@ with SinglePageLayout(server) as layout:
             classes="ma-2",
         )
 
-    with layout.content:
-        with vuetify.VContainer(
+    with (
+        layout.content,
+        vuetify.VContainer(
             fluid=True,
             classes="pa-0 fill-height",
-        ):
-            view = trame_vtk.VtkRemoteView(
-                plotter.ren_win,
-                ref="view",
-                interactive_ratio=1,
-            )
-            ctrl.view_update = view.update
-            ctrl.view_reset_camera = view.reset_camera
+        ),
+    ):
+        view = trame_vtk.VtkRemoteView(
+            plotter.ren_win,
+            ref="view",
+            interactive_ratio=1,
+        )
+        ctrl.view_update = view.update
+        ctrl.view_reset_camera = view.reset_camera
 
     # Uncomment following line to hide footer
     # layout.footer.hide()

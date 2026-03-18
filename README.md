@@ -4,12 +4,13 @@
 [![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
 [![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
-xarray DataArray accessors to visualize datasets in 3D with [PyVista](https://docs.pyvista.org)
+xarray DataArray accessors for PyVista to visualize datasets in 3D
 
-## 🚀 Usage
+## Usage
 
-You must `import pvxarray` in order to register the `DataArray` accessor with
-xarray. After which, a `pyvista` namespace of accessors will be available.
+Import `pvxarray` to register the `.pyvista` accessor on xarray `DataArray`
+and `Dataset` objects. This gives you access to methods for creating 3D meshes,
+plotting, and lazy evaluation of large datasets.
 
 Try on MyBinder: https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD
 
@@ -32,14 +33,12 @@ pl.show()
 
 ![cells3d](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/cells3d.png)
 
-The following is an example to visualize a `RectilinearGrid` with PyVista:
-
 ```py
 import pvxarray
 import xarray as xr
 
 ds = xr.tutorial.load_dataset("air_temperature")
-da = ds.air[dict(time=0)]  # Select DataArray for a timestep
+da = ds.air[dict(time=0)]
 
 # Plot in 3D
 da.pyvista.plot(x="lon", y="lat", show_edges=True, cpos='xy')
@@ -49,10 +48,174 @@ mesh = da.pyvista.mesh(x="lon", y="lat")
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/air_temperature.png' -->
+
 ![air_temperature](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/air_temperature.png)
 
+### Coordinate Auto-Detection
 
-Or you can read VTK meshes directly to xarray:
+If your data follows [CF conventions](https://cfconventions.org/), you can
+omit the `x`, `y`, and `z` arguments entirely. `pyvista-xarray` uses
+[cf-xarray](https://cf-xarray.readthedocs.io/) to detect coordinate axes
+from attributes like `axis`, `standard_name`, and `units`, as well as
+variable name heuristics:
+
+```py
+import pvxarray
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("air_temperature")
+da = ds.air[dict(time=0)]
+
+# Coordinates are auto-detected from CF attributes
+mesh = da.pyvista.mesh()
+
+# Inspect the detected axes
+da.pyvista.axes
+# {'X': 'lon', 'Y': 'lat'}
+```
+
+### Lazy Evaluation with Algorithm Sources
+
+For large or dask-backed datasets, create a VTK algorithm source that lazily
+evaluates data on demand. This avoids loading the entire dataset into memory
+and supports time stepping, resolution control, and spatial slicing:
+
+```py
+import pvxarray
+import pyvista as pv
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("air_temperature")
+da = ds.air
+
+# Create a lazy algorithm source with time stepping
+source = da.pyvista.algorithm(x="lon", y="lat", time="time")
+
+# Add directly to a plotter
+pl = pv.Plotter()
+pl.add_mesh(source)
+pl.show(cpos="xy")
+
+# Step through time
+source.time_index = 10
+```
+
+Use the `resolution` parameter to downsample large datasets for interactive
+rendering:
+
+```py
+source = da.pyvista.algorithm(x="lon", y="lat", time="time", resolution=0.5)
+```
+
+Algorithm sources also expose human-readable time labels from datetime
+coordinates:
+
+```py
+source.time_label  # e.g. '2013-01-01 00:00:00'
+```
+
+### Dataset Accessor
+
+The `.pyvista` accessor also works on `Dataset` objects, letting you load
+multiple data variables onto a single mesh. This is useful when a dataset
+contains several fields (e.g. wind components, temperature, pressure) that
+share the same grid:
+
+```py
+import pvxarray
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("eraint_uvz")
+
+# Discover which variables share the same dimensions
+ds.pyvista.available_arrays()
+# ['z', 'u', 'v']
+
+# Create a mesh with all three variables as point data
+mesh = ds.pyvista.mesh(
+    arrays=["u", "v", "z"],
+    x="longitude",
+    y="latitude",
+)
+
+# Or create a lazy algorithm source for large datasets
+source = ds.pyvista.algorithm(
+    arrays=["u", "v"],
+    x="longitude",
+    y="latitude",
+    z="level",
+    time="month",
+)
+```
+
+### Computed Fields
+
+Derive new arrays on the fly with `vtkArrayCalculator` expressions. This is
+useful for computing quantities like wind speed from vector components without
+modifying the underlying dataset:
+
+```py
+import pvxarray
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("eraint_uvz")
+
+source = ds.pyvista.algorithm(
+    arrays=["u", "v"],
+    x="longitude",
+    y="latitude",
+    z="level",
+    time="month",
+)
+
+# Add a derived wind speed field
+source.computed = {
+    "_use_scalars": ["u", "v"],
+    "wind_speed": "sqrt(u*u + v*v)",
+}
+```
+
+Expressions follow `vtkArrayCalculator` syntax and can reference any array
+loaded onto the mesh.
+
+### Pipeline Extensibility
+
+Inject post-processing filters into the source's evaluation chain. Each
+element can be a VTK algorithm or a callable that takes and returns a PyVista
+mesh:
+
+```py
+# Apply a warp filter after mesh creation
+source.pipeline = [lambda mesh: mesh.warp_by_scalar(factor=0.001)]
+```
+
+Filters run in order after computed fields are evaluated and the result is
+passed downstream to the plotter.
+
+### State Serialization
+
+Save and restore source configurations as JSON for reproducible
+visualizations:
+
+```py
+# Save the current configuration
+config = source.to_json()
+
+# Later, recreate the source with the same settings
+restored = PyVistaXarraySource.from_json(
+    config,
+    data_array=ds["u"],
+    dataset=ds,
+)
+```
+
+The state captures coordinate mappings, time index, resolution, array
+selections, and computed field definitions.
+
+### Reading VTK Files as xarray Datasets
+
+Read VTK mesh files directly into xarray using the `pyvista` backend
+engine. Supported formats include `.vti`, `.vtr`, `.vts`, and `.vtk`:
 
 ```py
 import xarray as xr
@@ -61,41 +224,58 @@ ds = xr.open_dataset("data.vtk", engine="pyvista")
 ds["data array"].pyvista.plot(x="x", y="y", z="z")
 ```
 
-## ⬇️ Installation
+### Converting PyVista Meshes to xarray
 
-### 🐍 Installing with `conda`
+Convert PyVista meshes back to xarray Datasets with `pyvista_to_xarray`.
+Supported mesh types: `RectilinearGrid`, `ImageData`, and `StructuredGrid`:
 
-Conda makes managing `pyvista-xarray`'s dependencies across platforms quite
-easy and this is the recommended method to install:
+```py
+import pyvista as pv
+from pvxarray import pyvista_to_xarray
 
-```bash
-conda install -c conda-forge pyvista-xarray
+grid = pv.RectilinearGrid([0, 1, 2], [0, 1], [0, 1])
+grid["values"] = range(grid.n_points)
+ds = pyvista_to_xarray(grid)
 ```
 
-### 🎡 Installing with `pip`
+## Installation
 
-If you prefer pip, then you can install from PyPI: https://pypi.org/project/pyvista-xarray/
+```bash
+pip install 'pyvista-xarray[jupyter]'
+```
+
+This includes Jupyter rendering support (via Trame), common I/O libraries
+(`netcdf4`, `rioxarray`), and dask for lazy evaluation. For a minimal
+install without these extras:
 
 ```bash
 pip install pyvista-xarray
 ```
 
-## 💭 Feedback
-Please share your thoughts and questions on the Discussions board. If you would
-like to report any bugs or make feature requests, please open an issue.
+`pyvista-xarray` is also available on conda-forge:
 
-If filing a bug report, please share a scooby Report:
-
-```py
-import pvxarray
-print(pvxarray.Report())
+```bash
+conda install -c conda-forge pyvista-xarray
 ```
 
-## 🏏 Further Examples
+## Examples
 
-The following are a few simple examples taken from the xarray and
-rioxarray documentation. There are also more sophisticated examples
-in the `examples/` directory in this repository.
+The [`examples/`](https://github.com/pyvista/pyvista-xarray/tree/main/examples)
+directory contains Jupyter notebooks demonstrating various use cases:
+
+| Notebook                                                      | Description                                              |
+| ------------------------------------------------------------- | -------------------------------------------------------- |
+| [introduction.ipynb](examples/introduction.ipynb)             | Quick start with auto-detection, rioxarray, and 3D grids |
+| [simple.ipynb](examples/simple.ipynb)                         | Lazy evaluation, time stepping, and algorithm sources    |
+| [ocean_model.ipynb](examples/ocean_model.ipynb)               | Curvilinear grids with ROMS ocean model data             |
+| [atmospheric_levels.ipynb](examples/atmospheric_levels.ipynb) | 3D atmospheric data across pressure levels               |
+| [lightning.ipynb](examples/lightning.ipynb)                   | Point cloud visualization from scattered observations    |
+| [cartographic.ipynb](examples/cartographic.ipynb)             | Geographic projections with GeoVista                     |
+| [radar.ipynb](examples/radar.ipynb)                           | Radar data with polar coordinates via xradar             |
+| [sea_temps.ipynb](examples/sea_temps.ipynb)                   | Sea surface temperature raster data                      |
+
+There are also Python scripts for interactive Trame web applications:
+`examples/level_of_detail.py` and `examples/level_of_detail_geovista.py`.
 
 ### Simple RectilinearGrid
 
@@ -124,7 +304,7 @@ mesh = ds.temperature.pyvista.mesh(x="lon", y="lat", z="z")
 mesh.plot()
 ```
 
-## Raster with rioxarray
+### Raster with rioxarray
 
 ```py
 import pvxarray
@@ -141,6 +321,7 @@ mesh.plot(scalars="data", cpos='xy', rgb=True)
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/raster.png' -->
+
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/raster.png)
 
 ```py
@@ -158,9 +339,10 @@ mesh.warp_by_scalar().plot()
 ```
 
 <!-- notebook=0, off_screen=1, screenshot='imgs/topo.png' -->
+
 ![topo](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/topo.png)
 
-## StructuredGrid
+### StructuredGrid
 
 ```py
 import pvxarray
@@ -195,3 +377,17 @@ p.show()
 ```
 
 ![raster](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/structured.png)
+
+## Feedback
+
+Please share your thoughts and questions on the
+[Discussions](https://github.com/pyvista/pyvista-xarray/discussions) board.
+If you would like to report any bugs or make feature requests, please open an
+[issue](https://github.com/pyvista/pyvista-xarray/issues).
+
+If filing a bug report, please share a scooby Report:
+
+```py
+import pvxarray
+print(pvxarray.Report())
+```

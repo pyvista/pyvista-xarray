@@ -1,3 +1,7 @@
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = version("pyvista-xarray")
+try:
+    __version__ = version("pyvista-xarray")
+except PackageNotFoundError:  # pragma: no cover
+    # package is not installed
+    __version__ = None

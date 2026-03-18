@@ -1,20 +1,51 @@
+"""Read and write PyVista meshes as xarray Datasets.
+
+Provides conversion functions from PyVista mesh types to
+:class:`xarray.Dataset` objects, and a backend engine so that
+``xr.open_dataset("file.vtk", engine="pyvista")`` works directly.
+
+Supported mesh types
+--------------------
+- :class:`pyvista.RectilinearGrid` — axis-aligned grids with 1D
+  coordinate arrays
+- :class:`pyvista.ImageData` — uniform-spacing grids (VTK image data)
+- :class:`pyvista.StructuredGrid` — curvilinear grids with 3D
+  coordinate arrays (requires data copy)
+
+Examples
+--------
+>>> import xarray as xr
+>>> ds = xr.open_dataset("data.vtr", engine="pyvista")
+"""
+
+from __future__ import annotations
+
 import os
-from typing import Union
+from typing import ClassVar
 import warnings
 
 import pyvista as pv
+from pyvista import ImageData
 import xarray as xr
 from xarray.backends import BackendEntrypoint
 
 from pvxarray.errors import DataCopyWarning
 
-try:
-    from pyvista import ImageData
-except ImportError:  # pyvista<0.40
-    from pyvista import UniformGrid as ImageData
-
 
 def rectilinear_grid_to_dataset(mesh: pv.RectilinearGrid) -> xr.Dataset:
+    """Convert a :class:`pyvista.RectilinearGrid` to an xarray Dataset.
+
+    Parameters
+    ----------
+    mesh : pyvista.RectilinearGrid
+        The rectilinear grid mesh to convert.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with data variables from point data and 1D coordinate
+        arrays for each axis.
+    """
     dims = list(mesh.dimensions)
     dims = dims[-1:] + dims[:-1]
     return xr.Dataset(
@@ -31,6 +62,23 @@ def rectilinear_grid_to_dataset(mesh: pv.RectilinearGrid) -> xr.Dataset:
 
 
 def image_data_to_dataset(mesh: ImageData) -> xr.Dataset:
+    """Convert a :class:`pyvista.ImageData` to an xarray Dataset.
+
+    Generates coordinate arrays from the mesh extent, spacing, and
+    origin using PyVista's internal coordinate generation to stay
+    in sync with upstream behavior.
+
+    Parameters
+    ----------
+    mesh : pyvista.ImageData
+        The uniform grid (image data) mesh to convert.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with data variables from point data and generated
+        coordinate arrays.
+    """
     coords = mesh._generate_rectilinear_coords()
 
     dims = list(mesh.dimensions)
@@ -49,10 +97,30 @@ def image_data_to_dataset(mesh: ImageData) -> xr.Dataset:
 
 
 def structured_grid_to_dataset(mesh: pv.StructuredGrid) -> xr.Dataset:
+    """Convert a :class:`pyvista.StructuredGrid` to an xarray Dataset.
+
+    Parameters
+    ----------
+    mesh : pyvista.StructuredGrid
+        The structured grid mesh to convert.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with data variables from point data and 3D coordinate
+        arrays for curvilinear coordinates.
+
+    Warns
+    -----
+    DataCopyWarning
+        Always emitted because structured grids store interleaved
+        points that must be reshaped.
+    """
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid dataset engine duplicates data - VTK/PyVista data not shared with xarray."
-        )
+        ),
+        stacklevel=2,
     )
     return xr.Dataset(
         {
@@ -67,8 +135,37 @@ def structured_grid_to_dataset(mesh: pv.StructuredGrid) -> xr.Dataset:
     )
 
 
-def pyvista_to_xarray(mesh: Union[pv.RectilinearGrid, ImageData, pv.StructuredGrid]) -> xr.Dataset:
-    """Generate an xarray DataSet from a PyVista mesh object."""
+def pyvista_to_xarray(mesh: pv.DataSet) -> xr.Dataset:
+    """Convert a PyVista mesh to an xarray Dataset.
+
+    Dispatches to the appropriate converter based on mesh type.
+
+    Parameters
+    ----------
+    mesh : pyvista.DataSet
+        A PyVista mesh. Supported types are
+        :class:`~pyvista.RectilinearGrid`,
+        :class:`~pyvista.ImageData`, and
+        :class:`~pyvista.StructuredGrid`.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset containing the mesh's point data as data variables
+        and spatial coordinates.
+
+    Raises
+    ------
+    TypeError
+        If *mesh* is not a supported type.
+
+    Examples
+    --------
+    >>> import pyvista as pv
+    >>> from pvxarray import pyvista_to_xarray
+    >>> grid = pv.RectilinearGrid([0, 1, 2], [0, 1], [0, 1])
+    >>> ds = pyvista_to_xarray(grid)
+    """
     if isinstance(mesh, pv.RectilinearGrid):
         return rectilinear_grid_to_dataset(mesh)
     elif isinstance(mesh, ImageData):
@@ -77,11 +174,24 @@ def pyvista_to_xarray(mesh: Union[pv.RectilinearGrid, ImageData, pv.StructuredGr
         return structured_grid_to_dataset(mesh)
     else:
         raise TypeError(
-            f"pvxarray is unable to generate an xarray DataSet from the {type(mesh)} VTK/PyVista data type at this time."
+            f"pvxarray is unable to generate an xarray DataSet from the "
+            f"{type(mesh).__name__} VTK/PyVista data type at this time."
         )
 
 
 class PyVistaBackendEntrypoint(BackendEntrypoint):
+    """Xarray backend engine for reading VTK files via PyVista.
+
+    Enables ``xr.open_dataset("file.vtk", engine="pyvista")``.
+
+    Supports ``.vti``, ``.vtr``, ``.vts``, and ``.vtk`` file formats.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> ds = xr.open_dataset("mesh.vtr", engine="pyvista")
+    """
+
     def open_dataset(
         self,
         filename_or_obj,
@@ -90,7 +200,27 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         force_ext=None,
         file_format=None,
         progress_bar=False,
-    ) -> xr.Dataset:
+    ):
+        """Open a VTK file as an xarray Dataset.
+
+        Parameters
+        ----------
+        filename_or_obj : str or path-like
+            Path to a VTK file.
+        drop_variables : sequence of str, optional
+            Variable names to exclude (ignored, kept for API compat).
+        force_ext : str, optional
+            Override the file extension for PyVista's reader dispatch.
+        file_format : str, optional
+            Explicit file format string for PyVista.
+        progress_bar : bool, default False
+            Show a progress bar during reading.
+
+        Returns
+        -------
+        xarray.Dataset
+            Dataset created from the mesh's point data.
+        """
         mesh = pv.read(
             filename_or_obj,
             force_ext=force_ext,
@@ -99,7 +229,7 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         )
         return pyvista_to_xarray(mesh)
 
-    open_dataset_parameters = [
+    open_dataset_parameters: ClassVar[list[str]] = [
         "filename_or_obj",
         "attrs",
         "force_ext",
@@ -107,7 +237,19 @@ class PyVistaBackendEntrypoint(BackendEntrypoint):
         "progress_bar",
     ]
 
-    def guess_can_open(self, filename_or_obj):
+    def guess_can_open(self, filename_or_obj) -> bool:
+        """Check whether a file can be opened by this backend.
+
+        Parameters
+        ----------
+        filename_or_obj : str or path-like
+            Path to test.
+
+        Returns
+        -------
+        bool
+            ``True`` if the file has a recognized VTK extension.
+        """
         try:
             _, ext = os.path.splitext(filename_or_obj)
         except TypeError:

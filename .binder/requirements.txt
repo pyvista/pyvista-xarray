@@ -1,12 +1,1 @@
-geovista
-open-radar-data
-protobuf==3.20.*
-pyvista-xarray
-siphon
-tqdm
-trame
-trame-jupyter-extension
-trame-vtk
-trame-vuetify
-xradar
-zarr  # for sea_temps example
+pyvista-xarray[examples]
