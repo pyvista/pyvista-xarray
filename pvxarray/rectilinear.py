@@ -1,18 +1,10 @@
-"""Create PyVista RectilinearGrid meshes from xarray DataArrays.
-
-RectilinearGrid is the most memory-efficient mesh type: it stores 1D
-coordinate arrays that define axis-aligned grid lines, and VTK
-reconstructs the full 3D grid implicitly. This preserves zero-copy
-memory sharing between xarray and VTK for both coordinates and data.
-
-Use this when coordinates are 1D (one value per grid line), which
-is the case for most regular lat/lon/level grids.
-"""
+"""Create PyVista RectilinearGrid or ImageData meshes from xarray DataArrays."""
 
 from __future__ import annotations
 
 import warnings
 
+import numpy as np
 import pyvista as pv
 
 from pvxarray.errors import DataCopyWarning
@@ -26,8 +18,20 @@ def mesh(
     order: str | None = "C",
     component: str | None = None,
     scales: dict | None = None,
-):
-    """Create a :class:`pyvista.RectilinearGrid` from 1D coordinates.
+) -> pv.RectilinearGrid | pv.ImageData:
+    """Create a :class:`pyvista.RectilinearGrid` or :class:`pyvista.ImageData` from 1D coordinates.
+
+    RectilinearGrid is the most memory-efficient mesh type: it stores
+    1D coordinate arrays that define axis-aligned grid lines, and VTK
+    reconstructs the full 3D grid implicitly. This preserves zero-copy
+    memory sharing between xarray and VTK for both coordinates and
+    data.
+
+    When the coordinate axes have uniform spacing, a
+    :class:`pyvista.ImageData` is returned instead, which is even more
+    efficient: it stores only the origin, spacing, and dimensions,
+    requiring no coordinate arrays at all. This yields significant
+    performance improvements, especially for volume rendering.
 
     Parameters
     ----------
@@ -47,9 +51,10 @@ def mesh(
 
     Returns
     -------
-    pyvista.RectilinearGrid
-        The mesh with data values as point data. Coordinates and
-        data share memory with the source xarray DataArray when
+    pyvista.RectilinearGrid or pyvista.ImageData
+        The mesh with data values as point data. An ImageData is
+        returned when all axes have uniform spacing. Coordinates
+        and data share memory with the source xarray DataArray when
         possible (no copies for numeric, C-contiguous data).
 
     Notes
@@ -83,17 +88,46 @@ def mesh(
     """
     if order is None:
         order = "C"
-    self._mesh = pv.RectilinearGrid()
+
     ndim = 3 - (x, y, z).count(None)
     if ndim < 1:
-        raise ValueError("You must specify at least one dimension as X, Y, or Z.")
+        msg = "You must specify at least one dimension as X, Y, or Z."
+        raise ValueError(msg)
     # Construct the mesh
     if x is not None:
-        self._mesh.x = self._get_array(x, scale=(scales and scales.get(x)) or 1)
+        xx = self._get_array(x, scale=(scales and scales.get(x)) or 1)
+    else:
+        xx = np.array([0.0])
     if y is not None:
-        self._mesh.y = self._get_array(y, scale=(scales and scales.get(y)) or 1)
+        yy = self._get_array(y, scale=(scales and scales.get(y)) or 1)
+    else:
+        yy = np.array([0.0])
     if z is not None:
-        self._mesh.z = self._get_array(z, scale=(scales and scales.get(z)) or 1)
+        zz = self._get_array(z, scale=(scales and scales.get(z)) or 1)
+    else:
+        zz = np.array([0.0])
+
+    # Check if axes have uniform spacing for ImageData optimization
+    dx = np.diff(xx)
+    dy = np.diff(yy)
+    dz = np.diff(zz)
+
+    ddx = dx[0] if len(dx) and dx[0] > 0 else 1.0
+    ddy = dy[0] if len(dy) and dy[0] > 0 else 1.0
+    ddz = dz[0] if len(dz) and dz[0] > 0 else 1.0
+
+    if np.allclose(dx, ddx) and np.allclose(dy, ddy) and np.allclose(dz, ddz):
+        self._mesh = pv.ImageData(
+            origin=(xx[0], yy[0], zz[0]),
+            spacing=(ddx, ddy, ddz),
+            dimensions=(len(xx), len(yy), len(zz)),
+        )
+    else:
+        self._mesh = pv.RectilinearGrid()
+        self._mesh.x = xx
+        self._mesh.y = yy
+        self._mesh.z = zz
+
     # Handle data values
     values = self.data
     values_dim = values.ndim
@@ -118,13 +152,13 @@ def mesh(
             f"and dimensionality of DataArray ({ndim} vs {values_dim})"
         )
         if ndim > values_dim:
-            raise ValueError(
-                f"{msg}. Too many coordinate dimensions specified leave out Y and/or Z."
-            )
-        raise ValueError(
-            f"{msg}. Too few coordinate dimensions specified. Be sure to specify "
-            f"Y and/or Z or reduce the dimensionality of the DataArray by indexing "
-            f"along non-spatial coordinates like Time."
+            msg += ". Too many coordinate dimensions specified leave out Y and/or Z."
+            raise ValueError(msg)
+        msg += (
+            ". Too few coordinate dimensions specified. Be sure to specify "
+            "Y and/or Z or reduce the dimensionality of the DataArray by indexing "
+            "along non-spatial coordinates like Time."
         )
+        raise ValueError(msg)
     self._mesh[self._obj.name or "data"] = values
     return self._mesh

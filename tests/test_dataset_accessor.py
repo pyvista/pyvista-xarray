@@ -1,5 +1,7 @@
 """Tests for the Dataset-level PyVista accessor (ds.pyvista)."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import pyvista as pv

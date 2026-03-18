@@ -11,9 +11,11 @@ from pvxarray.vtk_source import PyVistaXarraySource
 _INSTALL_HINT = "Install with: pip install 'pyvista-xarray[jupyter]'"
 
 if find_spec("ipywidgets") is None:
-    raise ImportError(f"ipywidgets is required for interactive widgets. {_INSTALL_HINT}")
+    msg = f"ipywidgets is required for interactive widgets. {_INSTALL_HINT}"
+    raise ImportError(msg)
 if find_spec("tqdm") is None:
-    raise ImportError(f"tqdm is required for progress bars and movie export. {_INSTALL_HINT}")
+    msg = f"tqdm is required for progress bars and movie export. {_INSTALL_HINT}"
+    raise ImportError(msg)
 
 import ipywidgets as widgets  # noqa: E402
 from tqdm import tqdm  # noqa: E402
@@ -22,9 +24,10 @@ from tqdm import tqdm  # noqa: E402
 def time_controls(
     engine: PyVistaXarraySource,
     plotter: pv.BasePlotter,
-    continuous_update=False,
-    step=1,
-    show_label=True,
+    *,
+    continuous_update: bool = False,
+    step: int = 1,
+    show_label: bool = True,
 ):
     """Create play/slider widgets to scrub through time steps.
 
@@ -77,10 +80,24 @@ def time_controls(
     return widgets.HBox(children)
 
 
-def show_ui(engine: PyVistaXarraySource, plotter: pv.BasePlotter, continuous_update=False, step=1):
+def show_ui(
+    engine: PyVistaXarraySource,
+    plotter: pv.BasePlotter,
+    *,
+    continuous_update: bool = False,
+    step: int = 1,
+):
     """Display the plotter with time controls in a Jupyter notebook."""
-    iframe = plotter.show(return_viewer=True, jupyter_kwargs={"height": "600px", "width": "99%"})
-    controls = time_controls(engine, plotter, continuous_update=continuous_update, step=step)
+    iframe = plotter.show(
+        return_viewer=True,
+        jupyter_kwargs={"height": "600px", "width": "99%"},
+    )
+    controls = time_controls(
+        engine,
+        plotter,
+        continuous_update=continuous_update,
+        step=step,
+    )
     return widgets.VBox([iframe, controls])
 
 

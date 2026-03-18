@@ -1,15 +1,4 @@
-"""Create PyVista StructuredGrid meshes from xarray DataArrays.
-
-StructuredGrid handles curvilinear coordinates — where coordinate
-arrays are 2D or 3D (e.g. ``lon_rho(xi, eta)``). The grid has
-logical i/j/k structure but physical points can be arbitrarily
-positioned in space.
-
-.. warning::
-    StructuredGrid creation always copies data because VTK stores
-    points as an interleaved ``(N, 3)`` array, which requires
-    rearranging the source coordinate arrays.
-"""
+"""Create PyVista StructuredGrid meshes from xarray DataArrays."""
 
 from __future__ import annotations
 
@@ -47,7 +36,8 @@ def _coerce_shapes(*arrs):
             ndim = arr.ndim
             maxi = i
     if ndim < 1:
-        raise ValueError("All coordinate arrays are empty or None.")
+        msg = "All coordinate arrays are empty or None."
+        raise ValueError(msg)
     shape = arrs[maxi].shape
     reshaped = []
     for arr in arrs:
@@ -55,10 +45,11 @@ def _coerce_shapes(*arrs):
             if arr.ndim < ndim:
                 arr = np.repeat([arr], shape[2 - maxi], axis=2 - maxi)
             else:
-                raise ValueError(
+                msg = (
                     f"Cannot broadcast coordinate arrays with shapes "
                     f"{[a.shape for a in arrs if a is not None]}."
                 )
+                raise ValueError(msg)
         reshaped.append(arr)
     return reshaped
 
@@ -78,8 +69,10 @@ def _points(
     ndim = 3 - (x, y, z).count(None)
     if ndim < 2:
         if ndim == 1:
-            raise ValueError("One dimensional structured grids should be rectilinear grids.")
-        raise ValueError("You must specify at least two dimensions as X, Y, or Z.")
+            msg = "One dimensional structured grids should be rectilinear grids."
+            raise ValueError(msg)
+        msg = "You must specify at least two dimensions as X, Y, or Z."
+        raise ValueError(msg)
     if x is not None:
         x = self._get_array(x, scale=(scales and scales.get(x)) or 1)
     if y is not None:
@@ -110,6 +103,16 @@ def mesh(
     scales: dict | None = None,
 ):
     """Create a :class:`pyvista.StructuredGrid` from curvilinear coordinates.
+
+    StructuredGrid handles curvilinear coordinates — where coordinate
+    arrays are 2D or 3D (e.g. ``lon_rho(xi, eta)``). The grid has
+    logical i/j/k structure but physical points can be arbitrarily
+    positioned in space.
+
+    .. warning::
+        StructuredGrid creation always copies data because VTK stores
+        points as an interleaved ``(N, 3)`` array, which requires
+        rearranging the source coordinate arrays.
 
     Parameters
     ----------
@@ -153,7 +156,8 @@ def mesh(
     if order is None:
         order = "F"
     if component is not None:
-        raise ValueError("Component is not currently supported for StructuredGrid")
+        msg = "Component is not currently supported for StructuredGrid"
+        raise ValueError(msg)
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid accessor duplicates data - VTK/PyVista data not shared with xarray."

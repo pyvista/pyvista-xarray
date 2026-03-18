@@ -14,6 +14,25 @@ plotting, and lazy evaluation of large datasets.
 
 Try on MyBinder: https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD
 
+The following is an example to visualize a 3D volume with PyVista:
+
+```py
+import pvxarray
+import pyvista as pv
+import xarray as xr
+
+ds = xr.tutorial.load_dataset("cells3d")
+da = ds.images
+nuclei = da.sel(c='nuclei').pyvista.mesh(x="x", y="y", z="z")
+
+pl = pv.Plotter()
+pl.add_volume(nuclei, clim=(0, 30000), opacity='sigmoid')
+pl.enable_terrain_style()
+pl.show()
+```
+
+![cells3d](https://raw.githubusercontent.com/pyvista/pyvista-xarray/main/imgs/cells3d.png)
+
 ```py
 import pvxarray
 import xarray as xr
@@ -254,6 +273,7 @@ directory contains Jupyter notebooks demonstrating various use cases:
 | [cartographic.ipynb](examples/cartographic.ipynb)             | Geographic projections with GeoVista                     |
 | [radar.ipynb](examples/radar.ipynb)                           | Radar data with polar coordinates via xradar             |
 | [sea_temps.ipynb](examples/sea_temps.ipynb)                   | Sea surface temperature raster data                      |
+| [volume_rendering.ipynb](examples/volume_rendering.ipynb)     | Volume rendering with automatic ImageData detection      |
 
 There are also Python scripts for interactive Trame web applications:
 `examples/level_of_detail.py` and `examples/level_of_detail_geovista.py`.

@@ -1,5 +1,7 @@
 """Environment and dependency reporting."""
 
+from __future__ import annotations
+
 import scooby
 
 

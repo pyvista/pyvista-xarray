@@ -1,5 +1,7 @@
 """Tests for CF-convention coordinate auto-detection via cf-xarray."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import pyvista as pv
@@ -156,7 +158,7 @@ def test_mesh_auto_detect_with_cf_attributes():
         name="temp",
     )
     mesh = da.pyvista.mesh()
-    assert isinstance(mesh, pv.RectilinearGrid)
+    assert isinstance(mesh, pv.RectilinearGrid | pv.ImageData)
     assert mesh.n_points == 12
 
 
@@ -202,5 +204,5 @@ def test_explicit_coords_override_auto_detect():
     # These coords have non-standard names, so auto-detect would fail.
     # But explicit specification should work.
     mesh = da.pyvista.mesh(x="b", y="a")
-    assert isinstance(mesh, pv.RectilinearGrid)
+    assert isinstance(mesh, pv.RectilinearGrid | pv.ImageData)
     assert mesh.n_points == 12
