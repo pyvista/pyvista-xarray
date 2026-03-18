@@ -1,10 +1,4 @@
-"""Create PyVista PolyData (point cloud) meshes from xarray DataArrays.
-
-PolyData is used for scattered/unstructured point data where
-coordinates are 1D arrays of the same length (one value per point).
-This is appropriate for observation data, station networks, or any
-data without a regular grid structure.
-"""
+"""Create PyVista PolyData (point cloud) meshes from xarray DataArrays."""
 
 from __future__ import annotations
 
@@ -26,6 +20,11 @@ def mesh(
     scales: dict | None = None,
 ):
     """Create a :class:`pyvista.PolyData` point cloud from coordinates.
+
+    PolyData is used for scattered/unstructured point data where
+    coordinates are 1D arrays of the same length (one value per point).
+    This is appropriate for observation data, station networks, or any
+    data without a regular grid structure.
 
     Parameters
     ----------
@@ -52,7 +51,8 @@ def mesh(
         order = "C"
     ndim = 3 - (x, y, z).count(None)
     if ndim < 1:
-        raise ValueError("You must specify at least one dimension as X, Y, or Z.")
+        msg = "You must specify at least one dimension as X, Y, or Z."
+        raise ValueError(msg)
     values = self.data
     if component is not None:
         dims = [d for d in self._obj.dims if d != component]
@@ -88,10 +88,11 @@ def mesh(
     values_dim = len(values)
     # Check dimensionality of data
     if values_dim != len(x):
-        raise ValueError(
+        msg = (
             f"Dimensional mismatch between specified X, Y, Z coords "
             f"and dimensionality of DataArray ({len(x)} vs {values_dim})"
         )
+        raise ValueError(msg)
     self._mesh = pv.PolyData(np.c_[x, y, z])
     self._mesh[self._obj.name or "data"] = values
     return self._mesh

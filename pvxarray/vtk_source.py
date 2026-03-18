@@ -1,10 +1,4 @@
-"""VTK algorithm source for lazy xarray DataArray evaluation.
-
-Provides :class:`PyVistaXarraySource`, a VTK pipeline source that wraps
-an xarray DataArray and lazily generates PyVista meshes on demand. This
-enables level-of-detail rendering, time stepping, and spatial slicing
-without loading the entire dataset into memory.
-"""
+"""VTK algorithm source for lazy xarray DataArray evaluation."""
 
 from __future__ import annotations
 
@@ -80,9 +74,10 @@ class BaseSource(VTKPythonAlgorithmBase):
 class PyVistaXarraySource(BaseSource):
     """VTK algorithm source wrapping an xarray DataArray.
 
-    Lazily evaluates the DataArray to produce a PyVista mesh on demand.
-    Supports time stepping, resolution control, spatial slicing, and
-    level-of-detail rendering for large or dask-backed datasets.
+    A VTK pipeline source that wraps an xarray DataArray and lazily
+    generates PyVista meshes on demand. This enables level-of-detail
+    rendering, time stepping, and spatial slicing without loading the
+    entire dataset into memory.
 
     Parameters
     ----------
@@ -158,7 +153,8 @@ class PyVistaXarraySource(BaseSource):
         if isinstance(time, str):
             self._time = time
         elif time is not None:
-            raise TypeError("time must be a string or None")
+            msg = "time must be a string or None"
+            raise TypeError(msg)
 
         self._z_index = None
         self._slicing = None

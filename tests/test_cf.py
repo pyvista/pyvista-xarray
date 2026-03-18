@@ -1,5 +1,7 @@
 """Tests for CF-convention coordinate auto-detection via cf-xarray."""
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import pyvista as pv

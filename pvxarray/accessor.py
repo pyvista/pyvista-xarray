@@ -1,17 +1,4 @@
-"""Xarray DataArray accessor for PyVista 3D visualization.
-
-Registers the ``.pyvista`` namespace on :class:`xarray.DataArray` objects,
-providing methods to convert xarray data into PyVista mesh objects for
-interactive 3D rendering.
-
-Example
--------
->>> import pvxarray  # noqa: F401
->>> import xarray as xr
->>> ds = xr.tutorial.load_dataset("air_temperature")
->>> da = ds.air[{"time": 0}]
->>> mesh = da.pyvista.mesh(x="lon", y="lat")
-"""
+"""Xarray DataArray accessor for PyVista 3D visualization."""
 
 from __future__ import annotations
 
@@ -47,8 +34,9 @@ class _LocIndexer:
 class PyVistaAccessor:
     """PyVista accessor for :class:`xarray.DataArray`.
 
-    Adds a ``.pyvista`` namespace to DataArray objects with methods for
-    creating 3D meshes, plotting, and constructing VTK algorithm sources.
+    Registers the ``.pyvista`` namespace on :class:`xarray.DataArray`
+    objects, providing methods to convert xarray data into PyVista mesh
+    objects for interactive 3D rendering.
 
     Parameters
     ----------
@@ -60,6 +48,14 @@ class PyVistaAccessor:
     Import ``pvxarray`` to register this accessor::
 
         import pvxarray  # noqa: F401
+
+    Examples
+    --------
+    >>> import pvxarray  # noqa: F401
+    >>> import xarray as xr
+    >>> ds = xr.tutorial.load_dataset("air_temperature")
+    >>> da = ds.air[{"time": 0}]
+    >>> mesh = da.pyvista.mesh(x="lon", y="lat")
     """
 
     def __init__(self, xarray_obj: xr.DataArray):
@@ -146,10 +142,11 @@ class PyVistaAccessor:
                 values = values.astype(values.dtype.newbyteorder("="))
             return values
         except KeyError as e:
-            raise KeyError(
+            msg = (
                 f"Key {key!r} not present in DataArray. "
                 f"Available coordinates: {list(self._obj.coords.keys())}"
-            ) from e
+            )
+            raise KeyError(msg) from e
 
     def mesh(
         self,
@@ -241,11 +238,12 @@ class PyVistaAccessor:
             y = axes.get("Y")
             z = axes.get("Z")
             if x is None and y is None:
-                raise ValueError(
+                msg = (
                     "Could not auto-detect spatial coordinates. "
                     "Specify x=, y=, and/or z= explicitly. "
                     f"Available coordinates: {list(self._obj.coords.keys())}"
                 )
+                raise ValueError(msg)
 
         ndim = 0
         if x is not None:
@@ -264,9 +262,8 @@ class PyVistaAccessor:
         try:
             meth = methods[mesh_type]
         except KeyError as e:
-            raise KeyError(
-                f"Unknown mesh_type {mesh_type!r}. Choose from: {list(methods.keys())}"
-            ) from e
+            msg = f"Unknown mesh_type {mesh_type!r}. Choose from: {list(methods.keys())}"
+            raise KeyError(msg) from e
         return meth(self, x=x, y=y, z=z, order=order, component=component, scales=scales)
 
     def plot(
@@ -298,9 +295,15 @@ class PyVistaAccessor:
         **kwargs
             Passed to :meth:`pyvista.DataSet.plot`.
         """
-        return self.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type).plot(
-            **kwargs
+        mesh = self.mesh(
+            x=x,
+            y=y,
+            z=z,
+            order=order,
+            component=component,
+            mesh_type=mesh_type,
         )
+        return mesh.plot(**kwargs)
 
     def algorithm(
         self,
@@ -415,10 +418,11 @@ class PyVistaDatasetAccessor:
         if reference is None:
             return [name for name in self._obj.data_vars if not is_bounds_variable(name)]
         if reference not in self._obj:
-            raise KeyError(
+            msg = (
                 f"{reference!r} not found in Dataset. "
                 f"Available variables: {list(self._obj.data_vars)}"
             )
+            raise KeyError(msg)
         target_dims = set(self._obj[reference].dims)
         return [
             name
@@ -466,11 +470,19 @@ class PyVistaDatasetAccessor:
         if arrays is None:
             arrays = [name for name in self._obj.data_vars if not is_bounds_variable(name)][:1]
         if not arrays:
-            raise ValueError("No data variables to visualize.")
+            msg = "No data variables to visualize."
+            raise ValueError(msg)
 
         primary = arrays[0]
         da = self._obj[primary]
-        mesh = da.pyvista.mesh(x=x, y=y, z=z, order=order, component=component, mesh_type=mesh_type)
+        mesh = da.pyvista.mesh(
+            x=x,
+            y=y,
+            z=z,
+            order=order,
+            component=component,
+            mesh_type=mesh_type,
+        )
 
         # Load additional arrays
         _order = order or "C"
@@ -523,7 +535,8 @@ class PyVistaDatasetAccessor:
         if arrays is None:
             arrays = [name for name in self._obj.data_vars if not is_bounds_variable(name)]
         if not arrays:
-            raise ValueError("No data variables to visualize.")
+            msg = "No data variables to visualize."
+            raise ValueError(msg)
 
         primary = arrays[0]
         return PyVistaXarraySource(

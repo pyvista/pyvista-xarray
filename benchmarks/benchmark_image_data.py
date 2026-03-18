@@ -1,16 +1,4 @@
-"""Benchmark: ImageData vs RectilinearGrid performance.
-
-Demonstrates the performance benefits of using pv.ImageData over
-pv.RectilinearGrid when the coordinate axes have uniform spacing.
-The primary benefit is volume rendering performance.
-
-Usage
------
-    uv run python benchmarks/benchmark_image_data.py
-
-The cells3d xarray tutorial dataset is used as a realistic 3D volume
-with uniform spacing on all axes.
-"""
+"""Benchmark: ImageData vs RectilinearGrid performance."""
 
 from __future__ import annotations
 
@@ -114,6 +102,20 @@ def print_table(rows, headers):
 
 
 def main():
+    """Run ImageData vs RectilinearGrid benchmark.
+
+    Demonstrates the performance benefits of using
+    :class:`pyvista.ImageData` over :class:`pyvista.RectilinearGrid`
+    when the coordinate axes have uniform spacing. The primary benefit
+    is volume rendering performance.
+
+    Usage::
+
+        uv run python benchmarks/benchmark_image_data.py
+
+    The cells3d xarray tutorial dataset is used as a realistic 3D
+    volume with uniform spacing on all axes.
+    """
     print("=" * 70)
     print("PyVista-xarray: ImageData vs RectilinearGrid Benchmark")
     print("=" * 70)

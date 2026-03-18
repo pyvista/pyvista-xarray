@@ -1,22 +1,4 @@
-"""Read and write PyVista meshes as xarray Datasets.
-
-Provides conversion functions from PyVista mesh types to
-:class:`xarray.Dataset` objects, and a backend engine so that
-``xr.open_dataset("file.vtk", engine="pyvista")`` works directly.
-
-Supported mesh types
---------------------
-- :class:`pyvista.RectilinearGrid` — axis-aligned grids with 1D
-  coordinate arrays
-- :class:`pyvista.ImageData` — uniform-spacing grids (VTK image data)
-- :class:`pyvista.StructuredGrid` — curvilinear grids with 3D
-  coordinate arrays (requires data copy)
-
-Examples
---------
->>> import xarray as xr
->>> ds = xr.open_dataset("data.vtr", engine="pyvista")
-"""
+"""Read and write PyVista meshes as xarray Datasets."""
 
 from __future__ import annotations
 
@@ -118,7 +100,8 @@ def structured_grid_to_dataset(mesh: pv.StructuredGrid) -> xr.Dataset:
     """
     warnings.warn(
         DataCopyWarning(
-            "StructuredGrid dataset engine duplicates data - VTK/PyVista data not shared with xarray."
+            "StructuredGrid dataset engine duplicates data"
+            " - VTK/PyVista data not shared with xarray."
         ),
         stacklevel=2,
     )
@@ -139,6 +122,15 @@ def pyvista_to_xarray(mesh: pv.DataSet) -> xr.Dataset:
     """Convert a PyVista mesh to an xarray Dataset.
 
     Dispatches to the appropriate converter based on mesh type.
+
+    Supported mesh types:
+
+    - :class:`pyvista.RectilinearGrid` — axis-aligned grids with 1D
+      coordinate arrays
+    - :class:`pyvista.ImageData` — uniform-spacing grids (VTK image
+      data)
+    - :class:`pyvista.StructuredGrid` — curvilinear grids with 3D
+      coordinate arrays (requires data copy)
 
     Parameters
     ----------
@@ -165,6 +157,9 @@ def pyvista_to_xarray(mesh: pv.DataSet) -> xr.Dataset:
     >>> from pvxarray import pyvista_to_xarray
     >>> grid = pv.RectilinearGrid([0, 1, 2], [0, 1], [0, 1])
     >>> ds = pyvista_to_xarray(grid)
+
+    >>> import xarray as xr
+    >>> ds = xr.open_dataset("data.vtr", engine="pyvista")
     """
     if isinstance(mesh, pv.RectilinearGrid):
         return rectilinear_grid_to_dataset(mesh)
@@ -173,10 +168,11 @@ def pyvista_to_xarray(mesh: pv.DataSet) -> xr.Dataset:
     elif isinstance(mesh, pv.StructuredGrid):
         return structured_grid_to_dataset(mesh)
     else:
-        raise TypeError(
+        msg = (
             f"pvxarray is unable to generate an xarray DataSet from the "
             f"{type(mesh).__name__} VTK/PyVista data type at this time."
         )
+        raise TypeError(msg)
 
 
 class PyVistaBackendEntrypoint(BackendEntrypoint):

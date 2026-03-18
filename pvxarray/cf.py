@@ -1,8 +1,4 @@
-"""CF-convention coordinate auto-detection for xarray DataArrays.
-
-Thin wrapper around `cf-xarray <https://cf-xarray.readthedocs.io/>`_
-for detecting spatial (X, Y, Z) and temporal (T) coordinate axes.
-"""
+"""CF-convention coordinate auto-detection for xarray DataArrays."""
 
 from __future__ import annotations
 
@@ -23,6 +19,9 @@ _COORD_TYPE_TO_AXIS: dict[str, str] = {
 
 def detect_axes(da: xr.DataArray) -> dict[str, str]:
     """Detect CF axis mapping from a DataArray's coordinates.
+
+    Thin wrapper around `cf-xarray <https://cf-xarray.readthedocs.io/>`_
+    for detecting spatial (X, Y, Z) and temporal (T) coordinate axes.
 
     Uses cf-xarray to inspect coordinate attributes (``axis``,
     ``standard_name``, ``units``) and variable name heuristics to

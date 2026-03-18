@@ -1,5 +1,7 @@
 """Custom warning classes for pvxarray."""
 
+from __future__ import annotations
+
 
 class DataCopyWarning(Warning):
     """Issued when data must be copied instead of shared with VTK.
@@ -8,5 +10,3 @@ class DataCopyWarning(Warning):
     (e.g. multi-component array handling) require rearranging data in
     memory, which breaks the zero-copy sharing between xarray and VTK.
     """
-
-    pass

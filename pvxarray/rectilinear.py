@@ -1,19 +1,4 @@
-"""Create PyVista RectilinearGrid or ImageData meshes from xarray DataArrays.
-
-RectilinearGrid is the most memory-efficient mesh type: it stores 1D
-coordinate arrays that define axis-aligned grid lines, and VTK
-reconstructs the full 3D grid implicitly. This preserves zero-copy
-memory sharing between xarray and VTK for both coordinates and data.
-
-When the coordinate axes have uniform spacing, an ImageData (VTK
-image data) is used instead, which is even more efficient: it stores
-only the origin, spacing, and dimensions, requiring no coordinate
-arrays at all. This yields significant performance improvements,
-especially for operations like volume rendering.
-
-Use this when coordinates are 1D (one value per grid line), which
-is the case for most regular lat/lon/level grids.
-"""
+"""Create PyVista RectilinearGrid or ImageData meshes from xarray DataArrays."""
 
 from __future__ import annotations
 
@@ -36,9 +21,17 @@ def mesh(
 ) -> pv.RectilinearGrid | pv.ImageData:
     """Create a :class:`pyvista.RectilinearGrid` or :class:`pyvista.ImageData` from 1D coordinates.
 
+    RectilinearGrid is the most memory-efficient mesh type: it stores
+    1D coordinate arrays that define axis-aligned grid lines, and VTK
+    reconstructs the full 3D grid implicitly. This preserves zero-copy
+    memory sharing between xarray and VTK for both coordinates and
+    data.
+
     When the coordinate axes have uniform spacing, a
-    :class:`pyvista.ImageData` is returned for better performance.
-    Otherwise, a :class:`pyvista.RectilinearGrid` is used.
+    :class:`pyvista.ImageData` is returned instead, which is even more
+    efficient: it stores only the origin, spacing, and dimensions,
+    requiring no coordinate arrays at all. This yields significant
+    performance improvements, especially for volume rendering.
 
     Parameters
     ----------
@@ -98,7 +91,8 @@ def mesh(
 
     ndim = 3 - (x, y, z).count(None)
     if ndim < 1:
-        raise ValueError("You must specify at least one dimension as X, Y, or Z.")
+        msg = "You must specify at least one dimension as X, Y, or Z."
+        raise ValueError(msg)
     # Construct the mesh
     if x is not None:
         xx = self._get_array(x, scale=(scales and scales.get(x)) or 1)
@@ -158,13 +152,13 @@ def mesh(
             f"and dimensionality of DataArray ({ndim} vs {values_dim})"
         )
         if ndim > values_dim:
-            raise ValueError(
-                f"{msg}. Too many coordinate dimensions specified leave out Y and/or Z."
-            )
-        raise ValueError(
-            f"{msg}. Too few coordinate dimensions specified. Be sure to specify "
-            f"Y and/or Z or reduce the dimensionality of the DataArray by indexing "
-            f"along non-spatial coordinates like Time."
+            msg += ". Too many coordinate dimensions specified leave out Y and/or Z."
+            raise ValueError(msg)
+        msg += (
+            ". Too few coordinate dimensions specified. Be sure to specify "
+            "Y and/or Z or reduce the dimensionality of the DataArray by indexing "
+            "along non-spatial coordinates like Time."
         )
+        raise ValueError(msg)
     self._mesh[self._obj.name or "data"] = values
     return self._mesh
