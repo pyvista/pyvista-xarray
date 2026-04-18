@@ -1,7 +1,6 @@
 # PyVista xarray
 
 [![PyPI](https://img.shields.io/pypi/v/pyvista-xarray.svg?logo=python&logoColor=white)](https://pypi.org/project/pyvista-xarray/)
-[![codecov](https://codecov.io/gh/pyvista/pyvista-xarray/branch/main/graph/badge.svg?token=4BSDVV0WOG)](https://codecov.io/gh/pyvista/pyvista-xarray)
 [![MyBinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyvista/pyvista-xarray/HEAD)
 
 xarray DataArray accessors for PyVista to visualize datasets in 3D
